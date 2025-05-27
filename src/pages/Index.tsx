@@ -2,10 +2,11 @@
 import { useState, useRef, useEffect } from "react";
 import { BlocklyWorkspace } from "@/components/BlocklyWorkspace";
 import { Toolbar } from "@/components/Toolbar";
-import { ComponentPanel } from "@/components/ComponentPanel";
+import { ComponentSelector } from "@/components/ComponentSelector";
 import { CodeViewer } from "@/components/CodeViewer";
 import { BluetoothManager } from "@/components/BluetoothManager";
 import { Tutorial } from "@/components/Tutorial";
+import { useComponentManager } from "@/hooks/useComponentManager";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -14,6 +15,14 @@ const Index = () => {
   const [showCodeViewer, setShowCodeViewer] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const workspaceRef = useRef<any>(null);
+  
+  const {
+    selectedComponents,
+    addComponent,
+    removeComponent,
+    getAvailableBlocks,
+    clearComponents
+  } = useComponentManager();
 
   // Show tutorial on first visit
   useEffect(() => {
@@ -65,7 +74,8 @@ const Index = () => {
     if (workspaceRef.current) {
       workspaceRef.current.clear();
       setGeneratedCode("");
-      toast.success("Workspace cleared!");
+      clearComponents();
+      toast.success("Workspace and components cleared!");
     }
   };
 
@@ -102,9 +112,13 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-80px)]">
-        {/* Component Panel */}
+        {/* Component Selector Panel */}
         <div className="w-64 border-r border-purple-500/20 bg-slate-900/30 backdrop-blur-sm">
-          <ComponentPanel />
+          <ComponentSelector 
+            selectedComponents={selectedComponents}
+            onComponentAdd={addComponent}
+            onComponentRemove={removeComponent}
+          />
         </div>
 
         {/* Blockly Workspace */}
@@ -124,6 +138,8 @@ const Index = () => {
               <BlocklyWorkspace 
                 ref={workspaceRef}
                 onCodeChange={handleCodeGeneration}
+                availableBlocks={getAvailableBlocks()}
+                selectedComponents={selectedComponents}
               />
             </div>
             

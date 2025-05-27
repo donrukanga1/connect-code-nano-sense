@@ -3,13 +3,16 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { defineArduinoBlocks } from "@/lib/arduinoBlocks";
 import { setupArduinoGenerator } from "@/lib/arduinoGenerator";
+import { generateToolboxConfig } from "@/lib/toolboxGenerator";
 
 interface BlocklyWorkspaceProps {
   onCodeChange: (code: string) => void;
+  availableBlocks: string[];
+  selectedComponents: any[];
 }
 
 export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
-  ({ onCodeChange }, ref) => {
+  ({ onCodeChange, availableBlocks, selectedComponents }, ref) => {
     const blocklyDivRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
@@ -31,9 +34,9 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
       // Setup Arduino code generator
       setupArduinoGenerator();
 
-      // Create workspace
+      // Create workspace with dynamic toolbox
       const workspace = Blockly.inject(blocklyDivRef.current, {
-        toolbox: getToolboxConfig(),
+        toolbox: generateToolboxConfig(availableBlocks, selectedComponents),
         theme: getCustomTheme(),
         grid: {
           spacing: 20,
@@ -69,7 +72,15 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
           workspaceRef.current.dispose();
         }
       };
-    }, [onCodeChange]);
+    }, [onCodeChange, availableBlocks, selectedComponents]);
+
+    // Update toolbox when available blocks change
+    useEffect(() => {
+      if (workspaceRef.current) {
+        const newToolbox = generateToolboxConfig(availableBlocks, selectedComponents);
+        workspaceRef.current.updateToolbox(newToolbox);
+      }
+    }, [availableBlocks, selectedComponents]);
 
     const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => {
       try {
