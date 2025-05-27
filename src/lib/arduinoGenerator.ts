@@ -1,4 +1,3 @@
-
 import { javascriptGenerator } from 'blockly/javascript';
 
 export const setupArduinoGenerator = () => {
@@ -81,5 +80,31 @@ export const setupArduinoGenerator = () => {
   javascriptGenerator.forBlock['math_number'] = function(block: any) {
     const number = block.getFieldValue('NUM');
     return [number, 0];
+  };
+
+  // Sensor generators
+  javascriptGenerator.forBlock['arduino_temperature_read'] = function(block: any) {
+    return [`HTS.readTemperature()`, 0];
+  };
+
+  javascriptGenerator.forBlock['arduino_humidity_read'] = function(block: any) {
+    return [`HTS.readHumidity()`, 0];
+  };
+
+  javascriptGenerator.forBlock['arduino_imu_read'] = function(block: any) {
+    const axis = block.getFieldValue('AXIS');
+    return [`IMU.readFloatAccel${axis.toUpperCase()}()`, 0];
+  };
+
+  javascriptGenerator.forBlock['arduino_microphone_read'] = function(block: any) {
+    return [`PDM.read()`, 0];
+  };
+
+  javascriptGenerator.forBlock['arduino_sensor_begin'] = function(block: any) {
+    return `  HTS.begin();\n`;
+  };
+
+  javascriptGenerator.forBlock['arduino_imu_begin'] = function(block: any) {
+    return `  IMU.begin();\n`;
   };
 };

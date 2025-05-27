@@ -12,7 +12,7 @@ interface BlocklyWorkspaceProps {
 }
 
 export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
-  ({ onCodeChange, availableBlocks, selectedComponents }, ref) => {
+  ({ onCodeChange, availableBlocks = [], selectedComponents = [] }, ref) => {
     const blocklyDivRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
@@ -28,57 +28,75 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
     useEffect(() => {
       if (!blocklyDivRef.current) return;
 
-      // Define custom Arduino blocks
-      defineArduinoBlocks();
-      
-      // Setup Arduino code generator
-      setupArduinoGenerator();
+      try {
+        // Define custom Arduino blocks
+        defineArduinoBlocks();
+        
+        // Setup Arduino code generator
+        setupArduinoGenerator();
 
-      // Create workspace with dynamic toolbox
-      const workspace = Blockly.inject(blocklyDivRef.current, {
-        toolbox: generateToolboxConfig(availableBlocks, selectedComponents),
-        theme: getCustomTheme(),
-        grid: {
-          spacing: 20,
-          length: 3,
-          colour: "#ccc",
-          snap: true
-        },
-        zoom: {
-          controls: true,
-          wheel: true,
-          startScale: 1.0,
-          maxScale: 3,
-          minScale: 0.3,
-          scaleSpeed: 1.2
-        },
-        trashcan: true,
-        scrollbars: true,
-        sounds: false,
-        oneBasedIndex: false
-      });
+        // Create workspace with dynamic toolbox
+        const workspace = Blockly.inject(blocklyDivRef.current, {
+          toolbox: generateToolboxConfig(availableBlocks, selectedComponents),
+          theme: getCustomTheme(),
+          grid: {
+            spacing: 20,
+            length: 3,
+            colour: "#ccc",
+            snap: true
+          },
+          zoom: {
+            controls: true,
+            wheel: true,
+            startScale: 1.0,
+            maxScale: 3,
+            minScale: 0.3,
+            scaleSpeed: 1.2
+          },
+          trashcan: true,
+          scrollbars: true,
+          sounds: false,
+          oneBasedIndex: false
+        });
 
-      workspaceRef.current = workspace;
+        workspaceRef.current = workspace;
 
-      // Listen for changes and generate code
-      workspace.addChangeListener(() => {
-        const code = generateArduinoCode(workspace);
-        onCodeChange(code);
-      });
+        // Listen for changes and generate code
+        workspace.addChangeListener((event) => {
+          try {
+            const code = generateArduinoCode(workspace);
+            onCodeChange(code);
+          } catch (error) {
+            console.error("Error in change listener:", error);
+            onCodeChange("// Error generating code");
+          }
+        });
 
-      // Cleanup function
-      return () => {
-        if (workspaceRef.current) {
-          workspaceRef.current.dispose();
-        }
-      };
-    }, [onCodeChange, availableBlocks, selectedComponents]);
+        // Cleanup function
+        return () => {
+          try {
+            if (workspaceRef.current) {
+              workspaceRef.current.dispose();
+              workspaceRef.current = null;
+            }
+          } catch (error) {
+            console.error("Error disposing workspace:", error);
+          }
+        };
+      } catch (error) {
+        console.error("Error initializing Blockly workspace:", error);
+      }
+    }, [onCodeChange]);
 
     // Update toolbox when available blocks change
     useEffect(() => {
       if (workspaceRef.current) {
-        const newToolbox = generateToolboxConfig(availableBlocks, selectedComponents);
-        workspaceRef.current.updateToolbox(newToolbox);
+        try {
+          const newToolbox = generateToolboxConfig(availableBlocks, selectedComponents);
+          workspaceRef.current.updateToolbox(newToolbox);
+        } catch (error) {
+          console.error("Error updating toolbox:", error);
+        }
       }
     }, [availableBlocks, selectedComponents]);
 

@@ -1,4 +1,3 @@
-
 import * as Blockly from "blockly";
 
 export const defineArduinoBlocks = () => {
@@ -197,6 +196,79 @@ export const defineArduinoBlocks = () => {
       this.setOutput(true, 'Number');
       this.setColour("#84cc16");
       this.setTooltip("Number value");
+    }
+  };
+
+  // Sensor Blocks - Temperature
+  Blockly.Blocks['arduino_temperature_read'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("read temperature (°C)");
+      this.setOutput(true, "Number");
+      this.setColour("#10b981");
+      this.setTooltip("Read temperature from HTS221 sensor");
+    }
+  };
+
+  // Sensor Blocks - Humidity
+  Blockly.Blocks['arduino_humidity_read'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("read humidity (%)");
+      this.setOutput(true, "Number");
+      this.setColour("#10b981");
+      this.setTooltip("Read humidity from HTS221 sensor");
+    }
+  };
+
+  // Sensor Blocks - IMU
+  Blockly.Blocks['arduino_imu_read'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("read acceleration")
+        .appendField(new Blockly.FieldDropdown([
+          ["X", "x"],
+          ["Y", "y"],
+          ["Z", "z"]
+        ]), "AXIS");
+      this.setOutput(true, "Number");
+      this.setColour("#10b981");
+      this.setTooltip("Read acceleration data from IMU sensor");
+    }
+  };
+
+  // Sensor Blocks - Microphone
+  Blockly.Blocks['arduino_microphone_read'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("read microphone level");
+      this.setOutput(true, "Number");
+      this.setColour("#10b981");
+      this.setTooltip("Read microphone sound level");
+    }
+  };
+
+  // Sensor Begin Block
+  Blockly.Blocks['arduino_sensor_begin'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("initialize sensors");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour("#10b981");
+      this.setTooltip("Initialize sensor components");
+    }
+  };
+
+  // IMU Begin Block
+  Blockly.Blocks['arduino_imu_begin'] = {
+    init: function() {
+      this.appendDummyInput()
+        .appendField("initialize IMU sensor");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour("#10b981");
+      this.setTooltip("Initialize IMU motion sensor");
     }
   };
 };

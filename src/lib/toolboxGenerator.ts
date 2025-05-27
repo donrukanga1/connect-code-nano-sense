@@ -1,47 +1,50 @@
 
-export const generateToolboxConfig = (availableBlocks: string[], selectedComponents: any[]) => {
-  const hasBasicBlocks = availableBlocks.includes('arduino_setup');
-  const hasSensorBlocks = availableBlocks.some(block => 
+export const generateToolboxConfig = (availableBlocks: string[] = [], selectedComponents: any[] = []) => {
+  // Ensure availableBlocks is always an array
+  const blocks = Array.isArray(availableBlocks) ? availableBlocks : [];
+  
+  const hasBasicBlocks = blocks.includes('arduino_setup');
+  const hasSensorBlocks = blocks.some(block => 
     ['arduino_temperature_read', 'arduino_humidity_read', 'arduino_imu_read', 'arduino_microphone_read'].includes(block)
   );
-  const hasIOBlocks = availableBlocks.some(block => 
+  const hasIOBlocks = blocks.some(block => 
     ['arduino_digital_write', 'arduino_digital_read', 'arduino_pin_mode'].includes(block)
   );
 
   let toolboxXml = '<xml>';
 
   // Arduino Basics (always available)
-  if (hasBasicBlocks) {
-    toolboxXml += `
-      <category name="Arduino Basics" colour="#3b82f6">
-        <block type="arduino_setup"></block>
-        <block type="arduino_loop"></block>
-        <block type="arduino_delay"></block>
-        <block type="arduino_serial_begin"></block>
-        <block type="arduino_serial_print">
-          <value name="TEXT">
-            <block type="text">
-              <field name="TEXT">Hello World</field>
-            </block>
-          </value>
-        </block>
-      </category>`;
-  }
+  toolboxXml += `
+    <category name="Arduino Basics" colour="#3b82f6">
+      <block type="arduino_setup"></block>
+      <block type="arduino_loop"></block>
+      <block type="arduino_delay"></block>
+      <block type="arduino_serial_begin"></block>
+      <block type="arduino_serial_print">
+        <value name="TEXT">
+          <block type="text">
+            <field name="TEXT">Hello World</field>
+          </block>
+        </value>
+      </block>
+    </category>`;
 
   // Component-specific categories
-  if (selectedComponents.length > 0) {
+  if (selectedComponents && selectedComponents.length > 0) {
     selectedComponents.forEach(component => {
-      const componentColor = getComponentColor(component.type);
-      toolboxXml += `
-        <category name="${component.name}" colour="${componentColor}">`;
-      
-      component.blocks.forEach((blockType: string) => {
-        if (availableBlocks.includes(blockType)) {
-          toolboxXml += `<block type="${blockType}"></block>`;
-        }
-      });
-      
-      toolboxXml += '</category>';
+      if (component && component.blocks) {
+        const componentColor = getComponentColor(component.type);
+        toolboxXml += `
+          <category name="${component.name}" colour="${componentColor}">`;
+        
+        component.blocks.forEach((blockType: string) => {
+          if (blocks.includes(blockType)) {
+            toolboxXml += `<block type="${blockType}"></block>`;
+          }
+        });
+        
+        toolboxXml += '</category>';
+      }
     });
   }
 
@@ -49,9 +52,9 @@ export const generateToolboxConfig = (availableBlocks: string[], selectedCompone
   if (hasIOBlocks) {
     toolboxXml += `
       <category name="Digital I/O" colour="#10b981">
-        ${availableBlocks.includes('arduino_pin_mode') ? '<block type="arduino_pin_mode"></block>' : ''}
-        ${availableBlocks.includes('arduino_digital_write') ? '<block type="arduino_digital_write"></block>' : ''}
-        ${availableBlocks.includes('arduino_digital_read') ? '<block type="arduino_digital_read"></block>' : ''}
+        ${blocks.includes('arduino_pin_mode') ? '<block type="arduino_pin_mode"></block>' : ''}
+        ${blocks.includes('arduino_digital_write') ? '<block type="arduino_digital_write"></block>' : ''}
+        ${blocks.includes('arduino_digital_read') ? '<block type="arduino_digital_read"></block>' : ''}
         <block type="arduino_led_builtin"></block>
       </category>`;
   }
