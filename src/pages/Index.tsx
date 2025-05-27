@@ -5,13 +5,23 @@ import { Toolbar } from "@/components/Toolbar";
 import { ComponentPanel } from "@/components/ComponentPanel";
 import { CodeViewer } from "@/components/CodeViewer";
 import { BluetoothManager } from "@/components/BluetoothManager";
+import { Tutorial } from "@/components/Tutorial";
 import { toast } from "sonner";
 
 const Index = () => {
   const [generatedCode, setGeneratedCode] = useState<string>("");
   const [isConnected, setIsConnected] = useState(false);
   const [showCodeViewer, setShowCodeViewer] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
   const workspaceRef = useRef<any>(null);
+
+  // Show tutorial on first visit
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('arduino-blockly-tutorial-seen');
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+  }, []);
 
   const handleCodeGeneration = (code: string) => {
     setGeneratedCode(code);
@@ -59,6 +69,15 @@ const Index = () => {
     }
   };
 
+  const handleShowTutorial = () => {
+    setShowTutorial(true);
+  };
+
+  const handleCloseTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem('arduino-blockly-tutorial-seen', 'true');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Header */}
@@ -95,6 +114,7 @@ const Index = () => {
             onUpload={handleUpload}
             onClear={handleClearWorkspace}
             onToggleCode={() => setShowCodeViewer(!showCodeViewer)}
+            onShowTutorial={handleShowTutorial}
             showCodeViewer={showCodeViewer}
             isConnected={isConnected}
           />
@@ -115,6 +135,11 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <Tutorial onClose={handleCloseTutorial} />
+      )}
     </div>
   );
 };

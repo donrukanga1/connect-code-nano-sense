@@ -1,149 +1,124 @@
 
-import { javascriptGenerator } from "blockly/javascript";
+import { javascriptGenerator } from 'blockly/javascript';
 
 export const setupArduinoGenerator = () => {
-  // Arduino Setup
+  // Arduino Setup Block
   javascriptGenerator.forBlock['arduino_setup'] = function(block: any) {
-    const statements_setup_code = javascriptGenerator.statementToCode(block, 'SETUP_CODE');
-    const code = `void setup() {\n${statements_setup_code}}\n\n`;
-    return code;
+    const statements = javascriptGenerator.statementToCode(block, 'SETUP_CODE');
+    return `void setup() {\n${statements}}\n\n`;
   };
 
-  // Arduino Loop
+  // Arduino Loop Block
   javascriptGenerator.forBlock['arduino_loop'] = function(block: any) {
-    const statements_loop_code = javascriptGenerator.statementToCode(block, 'LOOP_CODE');
-    const code = `void loop() {\n${statements_loop_code}}\n\n`;
-    return code;
+    const statements = javascriptGenerator.statementToCode(block, 'LOOP_CODE');
+    return `void loop() {\n${statements}}\n`;
   };
 
-  // Delay
-  javascriptGenerator.forBlock['arduino_delay'] = function(block: any) {
-    const value_delay_time = javascriptGenerator.valueToCode(block, 'DELAY_TIME', javascriptGenerator.ORDER_ATOMIC);
-    const code = `  delay(${value_delay_time || 1000});\n`;
-    return code;
-  };
-
-  // Pin Mode
+  // Pin Mode Block
   javascriptGenerator.forBlock['arduino_pin_mode'] = function(block: any) {
-    const value_pin = javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_ATOMIC);
-    const dropdown_mode = block.getFieldValue('MODE');
-    const code = `  pinMode(${value_pin || 13}, ${dropdown_mode});\n`;
-    return code;
+    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '13';
+    const mode = block.getFieldValue('MODE');
+    return `  pinMode(${pin}, ${mode});\n`;
   };
 
-  // Digital Write
+  // Digital Write Block
   javascriptGenerator.forBlock['arduino_digital_write'] = function(block: any) {
-    const value_pin = javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_ATOMIC);
-    const dropdown_state = block.getFieldValue('STATE');
-    const code = `  digitalWrite(${value_pin || 13}, ${dropdown_state});\n`;
-    return code;
+    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '13';
+    const value = block.getFieldValue('VALUE');
+    return `  digitalWrite(${pin}, ${value});\n`;
   };
 
-  // Digital Read
+  // Digital Read Block
   javascriptGenerator.forBlock['arduino_digital_read'] = function(block: any) {
-    const value_pin = javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_ATOMIC);
-    const code = `digitalRead(${value_pin || 2})`;
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '13';
+    return [`digitalRead(${pin})`, 0];
   };
 
-  // Analog Read
+  // Analog Read Block
   javascriptGenerator.forBlock['arduino_analog_read'] = function(block: any) {
-    const value_pin = javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_ATOMIC);
-    const code = `analogRead(${value_pin || 'A0'})`;
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || 'A0';
+    return [`analogRead(${pin})`, 0];
   };
 
-  // Analog Write
+  // Analog Write Block
   javascriptGenerator.forBlock['arduino_analog_write'] = function(block: any) {
-    const value_pin = javascriptGenerator.valueToCode(block, 'PIN', javascriptGenerator.ORDER_ATOMIC);
-    const value_value = javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_ATOMIC);
-    const code = `  analogWrite(${value_pin || 9}, ${value_value || 0});\n`;
-    return code;
+    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '9';
+    const value = javascriptGenerator.valueToCode(block, 'VALUE', 0) || '0';
+    return `  analogWrite(${pin}, ${value});\n`;
   };
 
-  // Serial Begin
+  // Delay Block
+  javascriptGenerator.forBlock['arduino_delay'] = function(block: any) {
+    const time = javascriptGenerator.valueToCode(block, 'TIME', 0) || '1000';
+    return `  delay(${time});\n`;
+  };
+
+  // Serial Begin Block
   javascriptGenerator.forBlock['arduino_serial_begin'] = function(block: any) {
-    const value_baud_rate = javascriptGenerator.valueToCode(block, 'BAUD_RATE', javascriptGenerator.ORDER_ATOMIC);
-    const code = `  Serial.begin(${value_baud_rate || 9600});\n`;
-    return code;
+    const baud = block.getFieldValue('BAUD') || '9600';
+    return `  Serial.begin(${baud});\n`;
   };
 
-  // Serial Print
+  // Serial Print Block
   javascriptGenerator.forBlock['arduino_serial_print'] = function(block: any) {
-    const value_text = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC);
-    const code = `  Serial.println(${value_text || '"Hello World"'});\n`;
-    return code;
+    const text = javascriptGenerator.valueToCode(block, 'TEXT', 0) || '""';
+    return `  Serial.println(${text});\n`;
   };
 
-  // LED Built-in
+  // Built-in LED Block
   javascriptGenerator.forBlock['arduino_led_builtin'] = function(block: any) {
-    const dropdown_state = block.getFieldValue('STATE');
-    const code = `  digitalWrite(LED_BUILTIN, ${dropdown_state});\n`;
-    return code;
+    return ['LED_BUILTIN', 0];
   };
 
-  // Map Value
+  // Map Value Block
   javascriptGenerator.forBlock['arduino_map_value'] = function(block: any) {
-    const value_value = javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_ATOMIC);
-    const value_from_min = javascriptGenerator.valueToCode(block, 'FROM_MIN', javascriptGenerator.ORDER_ATOMIC);
-    const value_from_max = javascriptGenerator.valueToCode(block, 'FROM_MAX', javascriptGenerator.ORDER_ATOMIC);
-    const value_to_min = javascriptGenerator.valueToCode(block, 'TO_MIN', javascriptGenerator.ORDER_ATOMIC);
-    const value_to_max = javascriptGenerator.valueToCode(block, 'TO_MAX', javascriptGenerator.ORDER_ATOMIC);
-    const code = `map(${value_value || 0}, ${value_from_min || 0}, ${value_from_max || 1023}, ${value_to_min || 0}, ${value_to_max || 255})`;
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+    const value = javascriptGenerator.valueToCode(block, 'VALUE', 0) || '0';
+    const fromLow = javascriptGenerator.valueToCode(block, 'FROM_LOW', 0) || '0';
+    const fromHigh = javascriptGenerator.valueToCode(block, 'FROM_HIGH', 0) || '1023';
+    const toLow = javascriptGenerator.valueToCode(block, 'TO_LOW', 0) || '0';
+    const toHigh = javascriptGenerator.valueToCode(block, 'TO_HIGH', 0) || '255';
+    return [`map(${value}, ${fromLow}, ${fromHigh}, ${toLow}, ${toHigh})`, 0];
   };
 
-  // Arduino Nano 33 BLE Sense specific generators
+  // IMU Begin Block
   javascriptGenerator.forBlock['arduino_imu_begin'] = function(block: any) {
-    const code = `  if (!IMU.begin()) {\n    Serial.println("Failed to initialize IMU!");\n    while (1);\n  }\n`;
-    return code;
+    return `  if (!IMU.begin()) {\n    Serial.println("Failed to initialize IMU!");\n    while (1);\n  }\n`;
   };
 
+  // IMU Read Block
   javascriptGenerator.forBlock['arduino_imu_read'] = function(block: any) {
-    const dropdown_axis = block.getFieldValue('AXIS');
-    let code = '';
+    const axis = block.getFieldValue('AXIS');
+    const sensor = block.getFieldValue('SENSOR');
     
-    switch(dropdown_axis) {
-      case 'accelerationX':
-        code = 'IMU.readAcceleration(x, y, z); x';
-        break;
-      case 'accelerationY':
-        code = 'IMU.readAcceleration(x, y, z); y';
-        break;
-      case 'accelerationZ':
-        code = 'IMU.readAcceleration(x, y, z); z';
-        break;
-      case 'gyroscopeX':
-        code = 'IMU.readGyroscope(x, y, z); x';
-        break;
-      case 'gyroscopeY':
-        code = 'IMU.readGyroscope(x, y, z); y';
-        break;
-      case 'gyroscopeZ':
-        code = 'IMU.readGyroscope(x, y, z); z';
-        break;
+    let code = '';
+    if (sensor === 'ACCELEROMETER') {
+      code = `  if (IMU.accelerationAvailable()) {\n    IMU.readAcceleration(x, y, z);\n  }\n`;
+    } else if (sensor === 'GYROSCOPE') {
+      code = `  if (IMU.gyroscopeAvailable()) {\n    IMU.readGyroscope(x, y, z);\n  }\n`;
+    } else if (sensor === 'MAGNETOMETER') {
+      code = `  if (IMU.magneticFieldAvailable()) {\n    IMU.readMagneticField(x, y, z);\n  }\n`;
     }
     
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+    return [axis.toLowerCase(), 0];
   };
 
-  javascriptGenerator.forBlock['arduino_humidity_read'] = function(block: any) {
-    const code = 'HTS.readHumidity()';
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-  };
-
+  // Temperature Read Block
   javascriptGenerator.forBlock['arduino_temperature_read'] = function(block: any) {
-    const code = 'HTS.readTemperature()';
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+    return [`HTS.readTemperature()`, 0];
   };
 
+  // Humidity Read Block
+  javascriptGenerator.forBlock['arduino_humidity_read'] = function(block: any) {
+    return [`HTS.readHumidity()`, 0];
+  };
+
+  // Pressure Read Block
   javascriptGenerator.forBlock['arduino_pressure_read'] = function(block: any) {
-    const code = 'BARO.readPressure()';
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+    return [`BARO.readPressure()`, 0];
   };
 
+  // Microphone Read Block
   javascriptGenerator.forBlock['arduino_microphone_read'] = function(block: any) {
-    const code = 'PDM.available() ? PDM.read() : 0';
-    return [code, javascriptGenerator.ORDER_CONDITIONAL];
+    return [`PDM.available()`, 0];
   };
 };

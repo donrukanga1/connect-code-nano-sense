@@ -1,12 +1,13 @@
 
 import { Button } from "@/components/ui/button";
-import { Download, Upload, Trash2, Code, Eye, EyeOff, Bluetooth } from "lucide-react";
+import { Download, Upload, Trash2, Code, Eye, EyeOff, Bluetooth, HelpCircle } from "lucide-react";
 
 interface ToolbarProps {
   onDownload: () => void;
   onUpload: () => void;
   onClear: () => void;
   onToggleCode: () => void;
+  onShowTutorial: () => void;
   showCodeViewer: boolean;
   isConnected: boolean;
 }
@@ -16,12 +17,23 @@ export const Toolbar = ({
   onUpload, 
   onClear, 
   onToggleCode, 
+  onShowTutorial,
   showCodeViewer,
   isConnected 
 }: ToolbarProps) => {
   return (
     <div className="flex items-center justify-between p-4 border-b border-purple-500/20 bg-slate-900/30 backdrop-blur-sm">
       <div className="flex items-center space-x-4">
+        <Button
+          onClick={onShowTutorial}
+          variant="outline"
+          size="sm"
+          className="bg-purple-500/20 border-purple-500/30 text-purple-300 hover:bg-purple-500/30"
+        >
+          <HelpCircle className="w-4 h-4 mr-2" />
+          Tutorial
+        </Button>
+        
         <Button
           onClick={onDownload}
           variant="outline"

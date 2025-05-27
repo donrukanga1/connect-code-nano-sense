@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -92,6 +91,7 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
 
 const getCustomTheme = () => {
   return Blockly.Theme.defineTheme("arduino_dark", {
+    name: "arduino_dark",
     base: Blockly.Themes.Classic,
     componentStyles: {
       workspaceBackgroundColour: "#1e293b",
