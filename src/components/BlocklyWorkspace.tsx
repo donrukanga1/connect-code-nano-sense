@@ -137,7 +137,13 @@ const getToolboxConfig = () => {
         <block type="arduino_loop"></block>
         <block type="arduino_delay"></block>
         <block type="arduino_serial_begin"></block>
-        <block type="arduino_serial_print"></block>
+        <block type="arduino_serial_print">
+          <value name="TEXT">
+            <block type="text">
+              <field name="TEXT">Hello World</field>
+            </block>
+          </value>
+        </block>
       </category>
       
       <category name="Digital I/O" colour="#10b981">
@@ -150,23 +156,15 @@ const getToolboxConfig = () => {
       <category name="Analog I/O" colour="#f59e0b">
         <block type="arduino_analog_read"></block>
         <block type="arduino_analog_write"></block>
-        <block type="arduino_map_value"></block>
       </category>
       
-      <category name="Sensors (Nano 33 BLE)" colour="#ef4444">
-        <block type="arduino_imu_begin"></block>
-        <block type="arduino_imu_read"></block>
-        <block type="arduino_humidity_read"></block>
-        <block type="arduino_temperature_read"></block>
-        <block type="arduino_pressure_read"></block>
-        <block type="arduino_microphone_read"></block>
-      </category>
-      
-      <category name="Control" colour="#8b5cf6">
-        <block type="controls_if"></block>
-        <block type="controls_repeat_ext"></block>
-        <block type="controls_whileUntil"></block>
-        <block type="controls_for"></block>
+      <category name="Values" colour="#84cc16">
+        <block type="text">
+          <field name="TEXT">hello</field>
+        </block>
+        <block type="math_number">
+          <field name="NUM">123</field>
+        </block>
       </category>
       
       <category name="Logic" colour="#06b6d4">
@@ -176,11 +174,16 @@ const getToolboxConfig = () => {
         <block type="logic_boolean"></block>
       </category>
       
-      <category name="Math" colour="#84cc16">
-        <block type="math_number"></block>
-        <block type="math_arithmetic"></block>
-        <block type="math_random_int"></block>
-        <block type="math_constrain"></block>
+      <category name="Control" colour="#8b5cf6">
+        <block type="controls_if"></block>
+        <block type="controls_repeat_ext">
+          <value name="TIMES">
+            <block type="math_number">
+              <field name="NUM">10</field>
+            </block>
+          </value>
+        </block>
+        <block type="controls_whileUntil"></block>
       </category>
       
       <category name="Variables" colour="#f97316" custom="VARIABLE"></category>

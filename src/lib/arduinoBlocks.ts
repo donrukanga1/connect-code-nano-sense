@@ -30,13 +30,12 @@ export const defineArduinoBlocks = () => {
     }
   };
 
-  // Delay Block
+  // Delay Block - Simplified
   Blockly.Blocks['arduino_delay'] = {
     init: function() {
-      this.appendValueInput("DELAY_TIME")
-        .setCheck("Number")
-        .appendField("delay");
       this.appendDummyInput()
+        .appendField("delay")
+        .appendField(new Blockly.FieldNumber(1000, 1), "TIME")
         .appendField("milliseconds");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
@@ -45,13 +44,12 @@ export const defineArduinoBlocks = () => {
     }
   };
 
-  // Pin Mode Block
+  // Pin Mode Block - Simplified
   Blockly.Blocks['arduino_pin_mode'] = {
     init: function() {
-      this.appendValueInput("PIN")
-        .setCheck("Number")
-        .appendField("set pin");
       this.appendDummyInput()
+        .appendField("set pin")
+        .appendField(new Blockly.FieldNumber(13, 0, 53), "PIN")
         .appendField("mode to")
         .appendField(new Blockly.FieldDropdown([
           ["OUTPUT", "OUTPUT"],
@@ -65,13 +63,12 @@ export const defineArduinoBlocks = () => {
     }
   };
 
-  // Digital Write Block
+  // Digital Write Block - Simplified
   Blockly.Blocks['arduino_digital_write'] = {
     init: function() {
-      this.appendValueInput("PIN")
-        .setCheck("Number")
-        .appendField("digital write pin");
       this.appendDummyInput()
+        .appendField("digital write pin")
+        .appendField(new Blockly.FieldNumber(13, 0, 53), "PIN")
         .appendField("value")
         .appendField(new Blockly.FieldDropdown([
           ["HIGH", "HIGH"],
@@ -87,36 +84,42 @@ export const defineArduinoBlocks = () => {
   // Digital Read Block
   Blockly.Blocks['arduino_digital_read'] = {
     init: function() {
-      this.appendValueInput("PIN")
-        .setCheck("Number")
-        .appendField("digital read pin");
+      this.appendDummyInput()
+        .appendField("digital read pin")
+        .appendField(new Blockly.FieldNumber(2, 0, 53), "PIN");
       this.setOutput(true, "Boolean");
       this.setColour("#10b981");
       this.setTooltip("Read the value of a digital pin");
     }
   };
 
-  // Analog Read Block
+  // Analog Read Block - Simplified
   Blockly.Blocks['arduino_analog_read'] = {
     init: function() {
-      this.appendValueInput("PIN")
-        .setCheck("Number")
-        .appendField("analog read pin");
+      this.appendDummyInput()
+        .appendField("analog read pin")
+        .appendField(new Blockly.FieldDropdown([
+          ["A0", "A0"],
+          ["A1", "A1"],
+          ["A2", "A2"],
+          ["A3", "A3"],
+          ["A4", "A4"],
+          ["A5", "A5"]
+        ]), "PIN");
       this.setOutput(true, "Number");
       this.setColour("#f59e0b");
       this.setTooltip("Read analog value from pin (0-1023)");
     }
   };
 
-  // Analog Write Block
+  // Analog Write Block - Simplified
   Blockly.Blocks['arduino_analog_write'] = {
     init: function() {
-      this.appendValueInput("PIN")
-        .setCheck("Number")
-        .appendField("analog write pin");
-      this.appendValueInput("VALUE")
-        .setCheck("Number")
-        .appendField("value");
+      this.appendDummyInput()
+        .appendField("analog write pin")
+        .appendField(new Blockly.FieldNumber(9, 0, 13), "PIN")
+        .appendField("value")
+        .appendField(new Blockly.FieldNumber(255, 0, 255), "VALUE");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
       this.setColour("#f59e0b");
@@ -124,13 +127,18 @@ export const defineArduinoBlocks = () => {
     }
   };
 
-  // Serial Begin Block
+  // Serial Begin Block - Simplified
   Blockly.Blocks['arduino_serial_begin'] = {
     init: function() {
-      this.appendValueInput("BAUD_RATE")
-        .setCheck("Number")
-        .appendField("serial begin at");
       this.appendDummyInput()
+        .appendField("serial begin at")
+        .appendField(new Blockly.FieldDropdown([
+          ["9600", "9600"],
+          ["19200", "19200"],
+          ["38400", "38400"],
+          ["57600", "57600"],
+          ["115200", "115200"]
+        ]), "BAUD")
         .appendField("baud");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
@@ -152,7 +160,7 @@ export const defineArduinoBlocks = () => {
     }
   };
 
-  // LED Built-in Block
+  // LED Built-in Block - Simplified
   Blockly.Blocks['arduino_led_builtin'] = {
     init: function() {
       this.appendDummyInput()
@@ -168,99 +176,27 @@ export const defineArduinoBlocks = () => {
     }
   };
 
-  // Map Value Block
-  Blockly.Blocks['arduino_map_value'] = {
+  // Text Block for serial print
+  Blockly.Blocks['text'] = {
     init: function() {
-      this.appendValueInput("VALUE")
-        .setCheck("Number")
-        .appendField("map");
-      this.appendValueInput("FROM_MIN")
-        .setCheck("Number")
-        .appendField("from (");
-      this.appendValueInput("FROM_MAX")
-        .setCheck("Number")
-        .appendField(",");
-      this.appendValueInput("TO_MIN")
-        .setCheck("Number")
-        .appendField(") to (");
-      this.appendValueInput("TO_MAX")
-        .setCheck("Number")
-        .appendField(",");
       this.appendDummyInput()
-        .appendField(")");
-      this.setOutput(true, "Number");
-      this.setColour("#f59e0b");
-      this.setTooltip("Map a value from one range to another");
+        .appendField('"')
+        .appendField(new Blockly.FieldTextInput('hello'), 'TEXT')
+        .appendField('"');
+      this.setOutput(true, 'String');
+      this.setColour("#84cc16");
+      this.setTooltip("Text value");
     }
   };
 
-  // Arduino Nano 33 BLE Sense specific blocks
-  Blockly.Blocks['arduino_imu_begin'] = {
+  // Number Block
+  Blockly.Blocks['math_number'] = {
     init: function() {
       this.appendDummyInput()
-        .appendField("initialize IMU sensor");
-      this.setPreviousStatement(true, null);
-      this.setNextStatement(true, null);
-      this.setColour("#ef4444");
-      this.setTooltip("Initialize the built-in IMU sensor");
-    }
-  };
-
-  Blockly.Blocks['arduino_imu_read'] = {
-    init: function() {
-      this.appendDummyInput()
-        .appendField("read IMU")
-        .appendField(new Blockly.FieldDropdown([
-          ["acceleration X", "accelerationX"],
-          ["acceleration Y", "accelerationY"],
-          ["acceleration Z", "accelerationZ"],
-          ["gyroscope X", "gyroscopeX"],
-          ["gyroscope Y", "gyroscopeY"],
-          ["gyroscope Z", "gyroscopeZ"]
-        ]), "AXIS");
-      this.setOutput(true, "Number");
-      this.setColour("#ef4444");
-      this.setTooltip("Read IMU sensor data");
-    }
-  };
-
-  Blockly.Blocks['arduino_humidity_read'] = {
-    init: function() {
-      this.appendDummyInput()
-        .appendField("read humidity sensor");
-      this.setOutput(true, "Number");
-      this.setColour("#ef4444");
-      this.setTooltip("Read humidity percentage");
-    }
-  };
-
-  Blockly.Blocks['arduino_temperature_read'] = {
-    init: function() {
-      this.appendDummyInput()
-        .appendField("read temperature sensor");
-      this.setOutput(true, "Number");
-      this.setColour("#ef4444");
-      this.setTooltip("Read temperature in Celsius");
-    }
-  };
-
-  Blockly.Blocks['arduino_pressure_read'] = {
-    init: function() {
-      this.appendDummyInput()
-        .appendField("read pressure sensor");
-      this.setOutput(true, "Number");
-      this.setColour("#ef4444");
-      this.setTooltip("Read atmospheric pressure");
-    }
-  };
-
-  Blockly.Blocks['arduino_microphone_read'] = {
-    init: function() {
-      this.appendDummyInput()
-        .appendField("read microphone");
-      this.setOutput(true, "Number");
-      this.setColour("#ef4444");
-      this.setTooltip("Read microphone sound level");
+        .appendField(new Blockly.FieldNumber(0), 'NUM');
+      this.setOutput(true, 'Number');
+      this.setColour("#84cc16");
+      this.setTooltip("Number value");
     }
   };
 };

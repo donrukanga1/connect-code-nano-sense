@@ -16,46 +16,46 @@ export const setupArduinoGenerator = () => {
 
   // Pin Mode Block
   javascriptGenerator.forBlock['arduino_pin_mode'] = function(block: any) {
-    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '13';
+    const pin = block.getFieldValue('PIN');
     const mode = block.getFieldValue('MODE');
     return `  pinMode(${pin}, ${mode});\n`;
   };
 
   // Digital Write Block
   javascriptGenerator.forBlock['arduino_digital_write'] = function(block: any) {
-    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '13';
-    const value = block.getFieldValue('VALUE');
-    return `  digitalWrite(${pin}, ${value});\n`;
+    const pin = block.getFieldValue('PIN');
+    const state = block.getFieldValue('STATE');
+    return `  digitalWrite(${pin}, ${state});\n`;
   };
 
   // Digital Read Block
   javascriptGenerator.forBlock['arduino_digital_read'] = function(block: any) {
-    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '13';
+    const pin = block.getFieldValue('PIN');
     return [`digitalRead(${pin})`, 0];
   };
 
   // Analog Read Block
   javascriptGenerator.forBlock['arduino_analog_read'] = function(block: any) {
-    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || 'A0';
+    const pin = block.getFieldValue('PIN');
     return [`analogRead(${pin})`, 0];
   };
 
   // Analog Write Block
   javascriptGenerator.forBlock['arduino_analog_write'] = function(block: any) {
-    const pin = javascriptGenerator.valueToCode(block, 'PIN', 0) || '9';
-    const value = javascriptGenerator.valueToCode(block, 'VALUE', 0) || '0';
+    const pin = block.getFieldValue('PIN');
+    const value = block.getFieldValue('VALUE');
     return `  analogWrite(${pin}, ${value});\n`;
   };
 
   // Delay Block
   javascriptGenerator.forBlock['arduino_delay'] = function(block: any) {
-    const time = javascriptGenerator.valueToCode(block, 'TIME', 0) || '1000';
+    const time = block.getFieldValue('TIME');
     return `  delay(${time});\n`;
   };
 
   // Serial Begin Block
   javascriptGenerator.forBlock['arduino_serial_begin'] = function(block: any) {
-    const baud = block.getFieldValue('BAUD') || '9600';
+    const baud = block.getFieldValue('BAUD');
     return `  Serial.begin(${baud});\n`;
   };
 
@@ -67,58 +67,19 @@ export const setupArduinoGenerator = () => {
 
   // Built-in LED Block
   javascriptGenerator.forBlock['arduino_led_builtin'] = function(block: any) {
-    return ['LED_BUILTIN', 0];
+    const state = block.getFieldValue('STATE');
+    return `  digitalWrite(LED_BUILTIN, ${state});\n`;
   };
 
-  // Map Value Block
-  javascriptGenerator.forBlock['arduino_map_value'] = function(block: any) {
-    const value = javascriptGenerator.valueToCode(block, 'VALUE', 0) || '0';
-    const fromLow = javascriptGenerator.valueToCode(block, 'FROM_LOW', 0) || '0';
-    const fromHigh = javascriptGenerator.valueToCode(block, 'FROM_HIGH', 0) || '1023';
-    const toLow = javascriptGenerator.valueToCode(block, 'TO_LOW', 0) || '0';
-    const toHigh = javascriptGenerator.valueToCode(block, 'TO_HIGH', 0) || '255';
-    return [`map(${value}, ${fromLow}, ${fromHigh}, ${toLow}, ${toHigh})`, 0];
+  // Text Block
+  javascriptGenerator.forBlock['text'] = function(block: any) {
+    const text = block.getFieldValue('TEXT');
+    return [`"${text}"`, 0];
   };
 
-  // IMU Begin Block
-  javascriptGenerator.forBlock['arduino_imu_begin'] = function(block: any) {
-    return `  if (!IMU.begin()) {\n    Serial.println("Failed to initialize IMU!");\n    while (1);\n  }\n`;
-  };
-
-  // IMU Read Block
-  javascriptGenerator.forBlock['arduino_imu_read'] = function(block: any) {
-    const axis = block.getFieldValue('AXIS');
-    const sensor = block.getFieldValue('SENSOR');
-    
-    let code = '';
-    if (sensor === 'ACCELEROMETER') {
-      code = `  if (IMU.accelerationAvailable()) {\n    IMU.readAcceleration(x, y, z);\n  }\n`;
-    } else if (sensor === 'GYROSCOPE') {
-      code = `  if (IMU.gyroscopeAvailable()) {\n    IMU.readGyroscope(x, y, z);\n  }\n`;
-    } else if (sensor === 'MAGNETOMETER') {
-      code = `  if (IMU.magneticFieldAvailable()) {\n    IMU.readMagneticField(x, y, z);\n  }\n`;
-    }
-    
-    return [axis.toLowerCase(), 0];
-  };
-
-  // Temperature Read Block
-  javascriptGenerator.forBlock['arduino_temperature_read'] = function(block: any) {
-    return [`HTS.readTemperature()`, 0];
-  };
-
-  // Humidity Read Block
-  javascriptGenerator.forBlock['arduino_humidity_read'] = function(block: any) {
-    return [`HTS.readHumidity()`, 0];
-  };
-
-  // Pressure Read Block
-  javascriptGenerator.forBlock['arduino_pressure_read'] = function(block: any) {
-    return [`BARO.readPressure()`, 0];
-  };
-
-  // Microphone Read Block
-  javascriptGenerator.forBlock['arduino_microphone_read'] = function(block: any) {
-    return [`PDM.available()`, 0];
+  // Number Block
+  javascriptGenerator.forBlock['math_number'] = function(block: any) {
+    const number = block.getFieldValue('NUM');
+    return [number, 0];
   };
 };
