@@ -1,5 +1,5 @@
 
-import * as Blockly from "blockly/core";
+import * as Blockly from "blockly";
 
 export const defineArduinoBlocks = () => {
   // Arduino Setup Block

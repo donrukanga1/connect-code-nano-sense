@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import * as Blockly from "blockly/core";
+import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { defineArduinoBlocks } from "@/lib/arduinoBlocks";
 import { setupArduinoGenerator } from "@/lib/arduinoGenerator";
