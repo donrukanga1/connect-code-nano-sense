@@ -8,9 +8,9 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
 
   let toolboxXml = '<xml xmlns="https://developers.google.com/blockly/xml" id="toolbox">';
 
-  // Arduino Basics (always available)
+  // Arduino Basics (always available) - removed categorystyle to fix conflicts
   toolboxXml += `
-    <category name="Arduino Basics" colour="#3b82f6" categorystyle="arduino_blocks">
+    <category name="Arduino Basics" colour="#3b82f6">
       <block type="arduino_setup"></block>
       <block type="arduino_loop"></block>
       <block type="arduino_delay"></block>
@@ -46,14 +46,14 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
     });
   }
 
-  // Digital I/O (always show if any components selected)
+  // Digital I/O (always show if any components selected) - removed categorystyle
   const hasIOBlocks = blocks.some(block => 
     ['arduino_digital_write', 'arduino_digital_read', 'arduino_pin_mode'].includes(block)
   );
   
   if (hasIOBlocks || selectedComponents.length > 0) {
     toolboxXml += `
-      <category name="Digital I/O" colour="#10b981" categorystyle="sensor_blocks">`;
+      <category name="Digital I/O" colour="#10b981">`;
     
     if (blocks.includes('arduino_pin_mode')) {
       toolboxXml += `
@@ -95,9 +95,9 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
       <block type="logic_boolean"></block>
     </category>`;
 
-  // Control (always available)
+  // Control (always available) - removed categorystyle
   toolboxXml += `
-    <category name="Control" colour="#8b5cf6" categorystyle="control_blocks">
+    <category name="Control" colour="#8b5cf6">
       <block type="controls_if"></block>
       <block type="controls_repeat_ext">
         <value name="TIMES">
