@@ -6,11 +6,11 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
   console.log('Generating toolbox with blocks:', blocks);
   console.log('Selected components:', selectedComponents);
 
-  let toolboxXml = '<xml xmlns="https://developers.google.com/blockly/xml">';
+  let toolboxXml = '<xml xmlns="https://developers.google.com/blockly/xml" id="toolbox">';
 
   // Arduino Basics (always available)
   toolboxXml += `
-    <category name="Arduino Basics" colour="#3b82f6">
+    <category name="Arduino Basics" colour="#3b82f6" categorystyle="arduino_blocks">
       <block type="arduino_setup"></block>
       <block type="arduino_loop"></block>
       <block type="arduino_delay"></block>
@@ -35,7 +35,8 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
         component.blocks.forEach((blockType: string) => {
           // Only add blocks that exist in availableBlocks
           if (blocks.includes(blockType)) {
-            toolboxXml += `            <block type="${blockType}"></block>`;
+            toolboxXml += `
+            <block type="${blockType}"></block>`;
           }
         });
         
@@ -52,20 +53,24 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
   
   if (hasIOBlocks || selectedComponents.length > 0) {
     toolboxXml += `
-      <category name="Digital I/O" colour="#10b981">`;
+      <category name="Digital I/O" colour="#10b981" categorystyle="sensor_blocks">`;
     
     if (blocks.includes('arduino_pin_mode')) {
-      toolboxXml += `        <block type="arduino_pin_mode"></block>`;
+      toolboxXml += `
+        <block type="arduino_pin_mode"></block>`;
     }
     if (blocks.includes('arduino_digital_write')) {
-      toolboxXml += `        <block type="arduino_digital_write"></block>`;
+      toolboxXml += `
+        <block type="arduino_digital_write"></block>`;
     }
     if (blocks.includes('arduino_digital_read')) {
-      toolboxXml += `        <block type="arduino_digital_read"></block>`;
+      toolboxXml += `
+        <block type="arduino_digital_read"></block>`;
     }
     
     // Always include built-in LED
-    toolboxXml += `        <block type="arduino_led_builtin"></block>`;
+    toolboxXml += `
+        <block type="arduino_led_builtin"></block>`;
     toolboxXml += `
       </category>`;
   }
@@ -92,7 +97,7 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
 
   // Control (always available)
   toolboxXml += `
-    <category name="Control" colour="#8b5cf6">
+    <category name="Control" colour="#8b5cf6" categorystyle="control_blocks">
       <block type="controls_if"></block>
       <block type="controls_repeat_ext">
         <value name="TIMES">
@@ -111,7 +116,7 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
 
   toolboxXml += '</xml>';
   
-  console.log('Generated toolbox XML:', toolboxXml);
+  console.log('Generated toolbox XML length:', toolboxXml.length);
   return toolboxXml;
 };
 

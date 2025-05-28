@@ -16,6 +16,7 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
   ({ onCodeChange, availableBlocks = [], selectedComponents = [] }, ref) => {
     const blocklyDivRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
+    const initializationRef = useRef(false);
 
     useImperativeHandle(ref, () => ({
       clear: () => {
@@ -27,98 +28,122 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
     }));
 
     useEffect(() => {
-      if (!blocklyDivRef.current) return;
+      if (!blocklyDivRef.current || initializationRef.current) return;
 
-      try {
-        console.log('Initializing Blockly workspace...');
-        
-        // Define custom Arduino blocks first
-        defineArduinoBlocks();
-        
-        // Setup Arduino code generator
-        setupArduinoGenerator();
+      const initializeWorkspace = () => {
+        try {
+          console.log('Initializing Blockly workspace...');
+          
+          // Define custom Arduino blocks first
+          defineArduinoBlocks();
+          
+          // Setup Arduino code generator
+          setupArduinoGenerator();
 
-        // Generate initial toolbox
-        const toolboxXML = generateToolboxConfig(availableBlocks, selectedComponents);
+          // Wait a bit for blocks to be registered
+          setTimeout(() => {
+            try {
+              // Generate initial toolbox
+              const toolboxXML = generateToolboxConfig(availableBlocks, selectedComponents);
+              console.log('Creating workspace with toolbox...');
 
-        // Create workspace with configuration
-        const workspace = Blockly.inject(blocklyDivRef.current, {
-          toolbox: toolboxXML,
-          theme: getCustomTheme(),
-          grid: {
-            spacing: 20,
-            length: 3,
-            colour: "#ccc",
-            snap: true
-          },
-          zoom: {
-            controls: true,
-            wheel: true,
-            startScale: 1.0,
-            maxScale: 3,
-            minScale: 0.3,
-            scaleSpeed: 1.2
-          },
-          trashcan: true,
-          scrollbars: true,
-          sounds: false,
-          oneBasedIndex: false,
-          move: {
-            scrollbars: {
-              horizontal: true,
-              vertical: true
-            },
-            drag: true,
-            wheel: true
-          }
-        });
+              // Create workspace with configuration
+              const workspace = Blockly.inject(blocklyDivRef.current!, {
+                toolbox: toolboxXML,
+                theme: getCustomTheme(),
+                grid: {
+                  spacing: 20,
+                  length: 3,
+                  colour: "#ccc",
+                  snap: true
+                },
+                zoom: {
+                  controls: true,
+                  wheel: true,
+                  startScale: 1.0,
+                  maxScale: 3,
+                  minScale: 0.3,
+                  scaleSpeed: 1.2
+                },
+                trashcan: true,
+                scrollbars: true,
+                sounds: false,
+                oneBasedIndex: false,
+                move: {
+                  scrollbars: {
+                    horizontal: true,
+                    vertical: true
+                  },
+                  drag: true,
+                  wheel: true
+                },
+                renderer: 'zelos'
+              });
 
-        workspaceRef.current = workspace;
-        console.log('Workspace initialized successfully');
+              workspaceRef.current = workspace;
+              initializationRef.current = true;
+              console.log('Workspace initialized successfully');
 
-        // Listen for changes and generate code
-        const changeListener = (event: any) => {
-          try {
-            // Only generate code for meaningful changes
-            if (event.type === Blockly.Events.BLOCK_MOVE || 
-                event.type === Blockly.Events.BLOCK_CREATE || 
-                event.type === Blockly.Events.BLOCK_DELETE ||
-                event.type === Blockly.Events.BLOCK_CHANGE) {
-              const code = generateArduinoCode(workspace);
-              onCodeChange(code);
+              // Listen for changes and generate code
+              const changeListener = (event: any) => {
+                try {
+                  console.log('Blockly event:', event.type, event);
+                  
+                  // Generate code for all meaningful changes
+                  if (event.type === Blockly.Events.BLOCK_MOVE || 
+                      event.type === Blockly.Events.BLOCK_CREATE || 
+                      event.type === Blockly.Events.BLOCK_DELETE ||
+                      event.type === Blockly.Events.BLOCK_CHANGE ||
+                      event.type === Blockly.Events.VAR_CREATE ||
+                      event.type === Blockly.Events.VAR_DELETE) {
+                    
+                    // Small delay to ensure block is fully processed
+                    setTimeout(() => {
+                      const code = generateArduinoCode(workspace);
+                      onCodeChange(code);
+                    }, 10);
+                  }
+                } catch (error) {
+                  console.error("Error in change listener:", error);
+                  onCodeChange("// Error generating code");
+                }
+              };
+
+              workspace.addChangeListener(changeListener);
+
+              // Generate initial code
+              const initialCode = generateArduinoCode(workspace);
+              onCodeChange(initialCode);
+
+            } catch (error) {
+              console.error("Error creating workspace:", error);
             }
-          } catch (error) {
-            console.error("Error in change listener:", error);
-            onCodeChange("// Error generating code");
+          }, 100);
+
+        } catch (error) {
+          console.error("Error initializing Blockly workspace:", error);
+        }
+      };
+
+      initializeWorkspace();
+
+      // Cleanup function
+      return () => {
+        try {
+          if (workspaceRef.current) {
+            workspaceRef.current.dispose();
+            workspaceRef.current = null;
+            initializationRef.current = false;
           }
-        };
-
-        workspace.addChangeListener(changeListener);
-
-        // Generate initial code
-        const initialCode = generateArduinoCode(workspace);
-        onCodeChange(initialCode);
-
-        // Cleanup function
-        return () => {
-          try {
-            if (workspaceRef.current) {
-              workspaceRef.current.removeChangeListener(changeListener);
-              workspaceRef.current.dispose();
-              workspaceRef.current = null;
-            }
-          } catch (error) {
-            console.error("Error disposing workspace:", error);
-          }
-        };
-      } catch (error) {
-        console.error("Error initializing Blockly workspace:", error);
-      }
+        } catch (error) {
+          console.error("Error disposing workspace:", error);
+        }
+      };
     }, [onCodeChange]);
 
     // Update toolbox when available blocks change
     useEffect(() => {
-      if (workspaceRef.current) {
+      if (workspaceRef.current && initializationRef.current) {
         try {
           console.log('Updating toolbox with blocks:', availableBlocks);
           const newToolbox = generateToolboxConfig(availableBlocks, selectedComponents);
