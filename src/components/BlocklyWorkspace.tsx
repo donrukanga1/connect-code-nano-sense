@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -29,15 +30,20 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
       if (!blocklyDivRef.current) return;
 
       try {
-        // Define custom Arduino blocks
+        console.log('Initializing Blockly workspace...');
+        
+        // Define custom Arduino blocks first
         defineArduinoBlocks();
         
         // Setup Arduino code generator
         setupArduinoGenerator();
 
-        // Create workspace with dynamic toolbox
+        // Generate initial toolbox
+        const toolboxXML = generateToolboxConfig(availableBlocks, selectedComponents);
+
+        // Create workspace with configuration
         const workspace = Blockly.inject(blocklyDivRef.current, {
-          toolbox: generateToolboxConfig(availableBlocks, selectedComponents),
+          toolbox: toolboxXML,
           theme: getCustomTheme(),
           grid: {
             spacing: 20,
@@ -56,26 +62,48 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
           trashcan: true,
           scrollbars: true,
           sounds: false,
-          oneBasedIndex: false
+          oneBasedIndex: false,
+          move: {
+            scrollbars: {
+              horizontal: true,
+              vertical: true
+            },
+            drag: true,
+            wheel: true
+          }
         });
 
         workspaceRef.current = workspace;
+        console.log('Workspace initialized successfully');
 
         // Listen for changes and generate code
-        workspace.addChangeListener((event) => {
+        const changeListener = (event: any) => {
           try {
-            const code = generateArduinoCode(workspace);
-            onCodeChange(code);
+            // Only generate code for meaningful changes
+            if (event.type === Blockly.Events.BLOCK_MOVE || 
+                event.type === Blockly.Events.BLOCK_CREATE || 
+                event.type === Blockly.Events.BLOCK_DELETE ||
+                event.type === Blockly.Events.BLOCK_CHANGE) {
+              const code = generateArduinoCode(workspace);
+              onCodeChange(code);
+            }
           } catch (error) {
             console.error("Error in change listener:", error);
             onCodeChange("// Error generating code");
           }
-        });
+        };
+
+        workspace.addChangeListener(changeListener);
+
+        // Generate initial code
+        const initialCode = generateArduinoCode(workspace);
+        onCodeChange(initialCode);
 
         // Cleanup function
         return () => {
           try {
             if (workspaceRef.current) {
+              workspaceRef.current.removeChangeListener(changeListener);
               workspaceRef.current.dispose();
               workspaceRef.current = null;
             }
@@ -92,8 +120,10 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
     useEffect(() => {
       if (workspaceRef.current) {
         try {
+          console.log('Updating toolbox with blocks:', availableBlocks);
           const newToolbox = generateToolboxConfig(availableBlocks, selectedComponents);
           workspaceRef.current.updateToolbox(newToolbox);
+          console.log('Toolbox updated successfully');
         } catch (error) {
           console.error("Error updating toolbox:", error);
         }
@@ -156,68 +186,4 @@ const getCustomTheme = () => {
       }
     }
   });
-};
-
-const getToolboxConfig = () => {
-  return `
-    <xml>
-      <category name="Arduino Basics" colour="#3b82f6">
-        <block type="arduino_setup"></block>
-        <block type="arduino_loop"></block>
-        <block type="arduino_delay"></block>
-        <block type="arduino_serial_begin"></block>
-        <block type="arduino_serial_print">
-          <value name="TEXT">
-            <block type="text">
-              <field name="TEXT">Hello World</field>
-            </block>
-          </value>
-        </block>
-      </category>
-      
-      <category name="Digital I/O" colour="#10b981">
-        <block type="arduino_pin_mode"></block>
-        <block type="arduino_digital_write"></block>
-        <block type="arduino_digital_read"></block>
-        <block type="arduino_led_builtin"></block>
-      </category>
-      
-      <category name="Analog I/O" colour="#f59e0b">
-        <block type="arduino_analog_read"></block>
-        <block type="arduino_analog_write"></block>
-      </category>
-      
-      <category name="Values" colour="#84cc16">
-        <block type="text">
-          <field name="TEXT">hello</field>
-        </block>
-        <block type="math_number">
-          <field name="NUM">123</field>
-        </block>
-      </category>
-      
-      <category name="Logic" colour="#06b6d4">
-        <block type="logic_compare"></block>
-        <block type="logic_operation"></block>
-        <block type="logic_negate"></block>
-        <block type="logic_boolean"></block>
-      </category>
-      
-      <category name="Control" colour="#8b5cf6">
-        <block type="controls_if"></block>
-        <block type="controls_repeat_ext">
-          <value name="TIMES">
-            <block type="math_number">
-              <field name="NUM">10</field>
-            </block>
-          </value>
-        </block>
-        <block type="controls_whileUntil"></block>
-      </category>
-      
-      <category name="Variables" colour="#f97316" custom="VARIABLE"></category>
-      
-      <category name="Functions" colour="#ec4899" custom="PROCEDURE"></category>
-    </xml>
-  `;
 };

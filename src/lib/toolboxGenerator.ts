@@ -3,15 +3,10 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
   // Ensure availableBlocks is always an array
   const blocks = Array.isArray(availableBlocks) ? availableBlocks : [];
   
-  const hasBasicBlocks = blocks.includes('arduino_setup');
-  const hasSensorBlocks = blocks.some(block => 
-    ['arduino_temperature_read', 'arduino_humidity_read', 'arduino_imu_read', 'arduino_microphone_read'].includes(block)
-  );
-  const hasIOBlocks = blocks.some(block => 
-    ['arduino_digital_write', 'arduino_digital_read', 'arduino_pin_mode'].includes(block)
-  );
+  console.log('Generating toolbox with blocks:', blocks);
+  console.log('Selected components:', selectedComponents);
 
-  let toolboxXml = '<xml>';
+  let toolboxXml = '<xml xmlns="https://developers.google.com/blockly/xml">';
 
   // Arduino Basics (always available)
   toolboxXml += `
@@ -32,30 +27,46 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
   // Component-specific categories
   if (selectedComponents && selectedComponents.length > 0) {
     selectedComponents.forEach(component => {
-      if (component && component.blocks) {
+      if (component && component.blocks && component.blocks.length > 0) {
         const componentColor = getComponentColor(component.type);
         toolboxXml += `
           <category name="${component.name}" colour="${componentColor}">`;
         
         component.blocks.forEach((blockType: string) => {
+          // Only add blocks that exist in availableBlocks
           if (blocks.includes(blockType)) {
-            toolboxXml += `<block type="${blockType}"></block>`;
+            toolboxXml += `            <block type="${blockType}"></block>`;
           }
         });
         
-        toolboxXml += '</category>';
+        toolboxXml += `
+          </category>`;
       }
     });
   }
 
-  // Digital I/O (if any IO components are selected)
-  if (hasIOBlocks) {
+  // Digital I/O (always show if any components selected)
+  const hasIOBlocks = blocks.some(block => 
+    ['arduino_digital_write', 'arduino_digital_read', 'arduino_pin_mode'].includes(block)
+  );
+  
+  if (hasIOBlocks || selectedComponents.length > 0) {
     toolboxXml += `
-      <category name="Digital I/O" colour="#10b981">
-        ${blocks.includes('arduino_pin_mode') ? '<block type="arduino_pin_mode"></block>' : ''}
-        ${blocks.includes('arduino_digital_write') ? '<block type="arduino_digital_write"></block>' : ''}
-        ${blocks.includes('arduino_digital_read') ? '<block type="arduino_digital_read"></block>' : ''}
-        <block type="arduino_led_builtin"></block>
+      <category name="Digital I/O" colour="#10b981">`;
+    
+    if (blocks.includes('arduino_pin_mode')) {
+      toolboxXml += `        <block type="arduino_pin_mode"></block>`;
+    }
+    if (blocks.includes('arduino_digital_write')) {
+      toolboxXml += `        <block type="arduino_digital_write"></block>`;
+    }
+    if (blocks.includes('arduino_digital_read')) {
+      toolboxXml += `        <block type="arduino_digital_read"></block>`;
+    }
+    
+    // Always include built-in LED
+    toolboxXml += `        <block type="arduino_led_builtin"></block>`;
+    toolboxXml += `
       </category>`;
   }
 
@@ -99,6 +110,8 @@ export const generateToolboxConfig = (availableBlocks: string[] = [], selectedCo
     <category name="Functions" colour="#ec4899" custom="PROCEDURE"></category>`;
 
   toolboxXml += '</xml>';
+  
+  console.log('Generated toolbox XML:', toolboxXml);
   return toolboxXml;
 };
 
