@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -100,6 +101,7 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
     // Handle workspace resize
     const handleResize = useCallback(() => {
       if (workspaceRef.current) {
+        console.log('DEBUG: Resizing Blockly workspace');
         Blockly.svgResize(workspaceRef.current);
       }
     }, []);
@@ -207,9 +209,30 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
 
               if (event.type === Blockly.Events.BLOCK_MOVE) {
                 console.log('DEBUG: Block moved - ID:', event.blockId);
+                console.log('DEBUG: Old parent:', event.oldParentId, 'New parent:', event.newParentId);
+                console.log('DEBUG: Old coordinates:', event.oldCoordinate, 'New coordinates:', event.newCoordinate);
+                
                 if (event.newParentId === null && event.oldParentId !== null) {
                   console.log('DEBUG: Block disconnected from parent');
+                } else if (event.newParentId !== null && event.oldParentId === null) {
+                  console.log('DEBUG: Block connected to parent');
                 }
+                
+                // Check if block was dragged from toolbox
+                if (event.reason === Blockly.Events.MOVE_REASON_NEW) {
+                  console.log('DEBUG: ✅ NEW BLOCK DRAGGED FROM TOOLBOX!');
+                } else if (event.reason === Blockly.Events.MOVE_REASON_DRAG) {
+                  console.log('DEBUG: Block dragged within workspace');
+                }
+              }
+
+              // Add drag start/end events
+              if (event.type === Blockly.Events.DRAG_START) {
+                console.log('DEBUG: 🖱️ DRAG STARTED - Block ID:', event.blockId);
+              }
+
+              if (event.type === Blockly.Events.DRAG_STOP) {
+                console.log('DEBUG: 🖱️ DRAG STOPPED - Block ID:', event.blockId);
               }
               
               // Generate code for meaningful changes using debounced function
@@ -231,12 +254,30 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
           workspace.addChangeListener(changeListener);
           console.log('DEBUG: Change listener added');
 
+          // Add toolbox item click debugging
+          const toolbox = workspace.getToolbox();
+          if (toolbox) {
+            console.log('DEBUG: ✅ Toolbox found and accessible');
+            console.log('DEBUG: Toolbox flyout exists:', !!toolbox.getFlyout());
+          } else {
+            console.log('DEBUG: ❌ No toolbox found!');
+          }
+
           // Generate initial code
           const initialCode = generateArduinoCode(workspace);
           console.log('DEBUG: Initial code generated, length:', initialCode.length);
           onCodeChange(initialCode);
 
           console.log('DEBUG: Workspace initialization completed successfully');
+          console.log('DEBUG: 📋 TOOLBOX CATEGORIES:');
+          
+          // Log available categories in toolbox
+          if (toolbox) {
+            const categories = toolbox.getToolboxItems();
+            categories.forEach((category: any, index: number) => {
+              console.log(`DEBUG: Category ${index}: ${category.getName()}`);
+            });
+          }
 
         } catch (error) {
           console.error("DEBUG: Error initializing Blockly workspace:", error);
