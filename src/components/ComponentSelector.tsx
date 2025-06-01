@@ -82,6 +82,25 @@ const availableComponents: Component[] = [
 export const ComponentSelector = ({ selectedComponents, onComponentAdd, onComponentRemove }: ComponentSelectorProps) => {
   const [expandedSection, setExpandedSection] = useState<string>('selected');
 
+  // Debug logging for selected components
+  console.log('DEBUG ComponentSelector: selectedComponents received:', selectedComponents);
+  selectedComponents.forEach((component, index) => {
+    console.log(`DEBUG Component ${index}:`, {
+      id: component.id,
+      name: component.name,
+      type: component.type,
+      blocks: component.blocks,
+      hasBlocks: !!component.blocks,
+      blocksLength: component.blocks?.length || 0
+    });
+    
+    if (!component.blocks) {
+      console.warn(`⚠️ Component "${component.name}" is missing blocks array!`);
+    } else if (component.blocks.length === 0) {
+      console.warn(`⚠️ Component "${component.name}" has empty blocks array!`);
+    }
+  });
+
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'sensor': return 'bg-green-500/20 border-green-500/30';
@@ -93,6 +112,23 @@ export const ComponentSelector = ({ selectedComponents, onComponentAdd, onCompon
 
   const isComponentSelected = (component: Component) => {
     return selectedComponents.some(c => c.id === component.id);
+  };
+
+  const handleAddComponent = (component: Component) => {
+    console.log('DEBUG ComponentSelector: Adding component:', {
+      id: component.id,
+      name: component.name,
+      type: component.type,
+      blocks: component.blocks,
+      hasBlocks: !!component.blocks,
+      blocksLength: component.blocks?.length || 0
+    });
+    
+    if (!component.blocks) {
+      console.error('❌ ERROR: Component being added is missing blocks!', component);
+    }
+    
+    onComponentAdd(component);
   };
 
   return (
@@ -127,6 +163,10 @@ export const ComponentSelector = ({ selectedComponents, onComponentAdd, onCompon
                       <span className="text-sm font-medium text-white">{component.name}</span>
                       <Badge variant="secondary" className="text-xs bg-slate-700">
                         {component.type}
+                      </Badge>
+                      {/* Debug info */}
+                      <Badge variant="secondary" className="text-xs bg-blue-700">
+                        {component.blocks?.length || 0} blocks
                       </Badge>
                     </div>
                     <Button
@@ -172,7 +212,7 @@ export const ComponentSelector = ({ selectedComponents, onComponentAdd, onCompon
                     </Badge>
                   </div>
                   <Button
-                    onClick={() => !isComponentSelected(component) && onComponentAdd(component)}
+                    onClick={() => !isComponentSelected(component) && handleAddComponent(component)}
                     variant="ghost"
                     size="sm"
                     disabled={isComponentSelected(component)}
