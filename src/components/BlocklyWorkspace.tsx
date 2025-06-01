@@ -1,4 +1,4 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { defineArduinoBlocks, areBlocksRegistered } from "@/lib/arduinoBlocks";
@@ -11,11 +11,46 @@ interface BlocklyWorkspaceProps {
   selectedComponents: any[];
 }
 
-export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
+export interface BlocklyWorkspaceRef {
+  clear: () => void;
+  save: () => Element | null;
+  load: (xml: Element) => void;
+  saveAsXml: () => string;
+  loadFromXml: (xmlString: string) => void;
+}
+
+// Debounce utility function
+const debounce = (fn: Function, delay: number) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), delay);
+  };
+};
+
+export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspaceProps>(
   ({ onCodeChange, availableBlocks = [], selectedComponents = [] }, ref) => {
     const blocklyDivRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
     const initializationRef = useRef(false);
+    const resizeObserverRef = useRef<ResizeObserver | null>(null);
+
+    // Debounced code generation
+    const debouncedCodeUpdate = useCallback(
+      debounce(() => {
+        if (workspaceRef.current) {
+          try {
+            const code = generateArduinoCode(workspaceRef.current);
+            console.log('DEBUG: Generated code length:', code.length);
+            onCodeChange(code);
+          } catch (codeError) {
+            console.error('DEBUG: Error generating code:', codeError);
+            onCodeChange("// Error generating code: " + codeError);
+          }
+        }
+      }, 100),
+      [onCodeChange]
+    );
 
     useImperativeHandle(ref, () => ({
       clear: () => {
@@ -27,8 +62,47 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
           onCodeChange("");
           console.log('DEBUG: Workspace cleared successfully');
         }
+      },
+      save: () => {
+        if (workspaceRef.current) {
+          return Blockly.Xml.workspaceToDom(workspaceRef.current);
+        }
+        return null;
+      },
+      load: (xml: Element) => {
+        if (workspaceRef.current) {
+          workspaceRef.current.clear();
+          Blockly.Xml.domToWorkspace(xml, workspaceRef.current);
+          debouncedCodeUpdate();
+        }
+      },
+      saveAsXml: () => {
+        if (workspaceRef.current) {
+          const xml = Blockly.Xml.workspaceToDom(workspaceRef.current);
+          return Blockly.Xml.domToText(xml);
+        }
+        return "";
+      },
+      loadFromXml: (xmlString: string) => {
+        if (workspaceRef.current && xmlString) {
+          try {
+            const xml = Blockly.utils.xml.textToDom(xmlString);
+            workspaceRef.current.clear();
+            Blockly.Xml.domToWorkspace(xml, workspaceRef.current);
+            debouncedCodeUpdate();
+          } catch (error) {
+            console.error('DEBUG: Error loading XML:', error);
+          }
+        }
       }
     }));
+
+    // Handle workspace resize
+    const handleResize = useCallback(() => {
+      if (workspaceRef.current) {
+        Blockly.svgResize(workspaceRef.current);
+      }
+    }, []);
 
     useEffect(() => {
       if (!blocklyDivRef.current || initializationRef.current) {
@@ -63,7 +137,6 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
           console.log('DEBUG: Generating toolbox configuration...');
           const toolboxXML = generateToolboxConfig(availableBlocks, selectedComponents);
           console.log('DEBUG: Toolbox XML generated, length:', toolboxXML.length);
-          console.log('DEBUG: Toolbox preview:', toolboxXML.substring(0, 200) + '...');
 
           console.log('DEBUG: Creating Blockly workspace...');
           // Create workspace with configuration
@@ -106,6 +179,17 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
           workspaceRef.current = workspace;
           initializationRef.current = true;
 
+          // Set up resize observer for the blockly container
+          if (blocklyDivRef.current) {
+            resizeObserverRef.current = new ResizeObserver(() => {
+              handleResize();
+            });
+            resizeObserverRef.current.observe(blocklyDivRef.current);
+          }
+
+          // Add window resize listener as fallback
+          window.addEventListener('resize', handleResize);
+
           // Listen for changes and generate code
           const changeListener = (event: any) => {
             try {
@@ -128,7 +212,7 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
                 }
               }
               
-              // Generate code for meaningful changes
+              // Generate code for meaningful changes using debounced function
               if (event.type === Blockly.Events.BLOCK_MOVE || 
                   event.type === Blockly.Events.BLOCK_CREATE || 
                   event.type === Blockly.Events.BLOCK_DELETE ||
@@ -136,17 +220,7 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
                   event.type === Blockly.Events.VAR_CREATE ||
                   event.type === Blockly.Events.VAR_DELETE) {
                 
-                // Delay to ensure block is fully processed
-                setTimeout(() => {
-                  try {
-                    const code = generateArduinoCode(workspace);
-                    console.log('DEBUG: Generated code length:', code.length);
-                    onCodeChange(code);
-                  } catch (codeError) {
-                    console.error('DEBUG: Error generating code:', codeError);
-                    onCodeChange("// Error generating code: " + codeError);
-                  }
-                }, 50);
+                debouncedCodeUpdate();
               }
             } catch (error) {
               console.error("DEBUG: Error in change listener:", error);
@@ -176,6 +250,14 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
       return () => {
         try {
           console.log('DEBUG: Cleanup function called');
+          
+          // Remove resize listeners
+          window.removeEventListener('resize', handleResize);
+          if (resizeObserverRef.current) {
+            resizeObserverRef.current.disconnect();
+            resizeObserverRef.current = null;
+          }
+          
           if (workspaceRef.current) {
             console.log('DEBUG: Disposing workspace...');
             workspaceRef.current.dispose();
@@ -187,36 +269,38 @@ export const BlocklyWorkspace = forwardRef<any, BlocklyWorkspaceProps>(
           console.error("DEBUG: Error disposing workspace:", error);
         }
       };
-    }, [onCodeChange]);
+    }, [onCodeChange, handleResize, debouncedCodeUpdate]);
 
     // Update toolbox when available blocks change
     useEffect(() => {
-      if (workspaceRef.current && initializationRef.current) {
-        try {
-          console.log('DEBUG: Updating toolbox...');
-          console.log('DEBUG: New available blocks:', availableBlocks);
-          console.log('DEBUG: New selected components:', selectedComponents);
-          const newToolbox = generateToolboxConfig(availableBlocks, selectedComponents);
-          console.log('DEBUG: New toolbox generated, length:', newToolbox.length);
-          
-          const blockCountBefore = workspaceRef.current.getAllBlocks().length;
-          console.log('DEBUG: Blocks count before toolbox update:', blockCountBefore);
-          
-          workspaceRef.current.updateToolbox(newToolbox);
-          
-          const blockCountAfter = workspaceRef.current.getAllBlocks().length;
-          console.log('DEBUG: Blocks count after toolbox update:', blockCountAfter);
-          
-          if (blockCountBefore !== blockCountAfter) {
-            console.warn('DEBUG: WARNING - Block count changed during toolbox update!', 
-              'Before:', blockCountBefore, 'After:', blockCountAfter);
-          }
-          
-          console.log('DEBUG: Toolbox updated successfully');
-        } catch (error) {
-          console.error("DEBUG: Error updating toolbox:", error);
-          console.error("DEBUG: Toolbox update error stack:", error.stack);
+      if (!workspaceRef.current || !initializationRef.current) {
+        return;
+      }
+
+      try {
+        console.log('DEBUG: Updating toolbox...');
+        console.log('DEBUG: New available blocks:', availableBlocks);
+        console.log('DEBUG: New selected components:', selectedComponents);
+        const newToolbox = generateToolboxConfig(availableBlocks, selectedComponents);
+        console.log('DEBUG: New toolbox generated, length:', newToolbox.length);
+        
+        const blockCountBefore = workspaceRef.current.getAllBlocks().length;
+        console.log('DEBUG: Blocks count before toolbox update:', blockCountBefore);
+        
+        workspaceRef.current.updateToolbox(newToolbox);
+        
+        const blockCountAfter = workspaceRef.current.getAllBlocks().length;
+        console.log('DEBUG: Blocks count after toolbox update:', blockCountAfter);
+        
+        if (blockCountBefore !== blockCountAfter) {
+          console.warn('DEBUG: WARNING - Block count changed during toolbox update!', 
+            'Before:', blockCountBefore, 'After:', blockCountAfter);
         }
+        
+        console.log('DEBUG: Toolbox updated successfully');
+      } catch (error) {
+        console.error("DEBUG: Error updating toolbox:", error);
+        console.error("DEBUG: Toolbox update error stack:", error.stack);
       }
     }, [availableBlocks, selectedComponents]);
 
