@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -140,7 +141,7 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
           console.log('DEBUG: Toolbox XML generated, length:', toolboxXML.length);
 
           console.log('DEBUG: Creating Blockly workspace...');
-          // Create workspace with configuration
+          // Create workspace with proper configuration
           const workspace = Blockly.inject(blocklyDivRef.current!, {
             toolbox: toolboxXML,
             theme: getCustomTheme(),
@@ -156,17 +157,18 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
               startScale: 1.0,
               maxScale: 3,
               minScale: 0.3,
-              scaleSpeed: 1.2
+              scaleSpeed: 1.2,
+              pinch: true
             },
             trashcan: true,
-            scrollbars: true,
+            scrollbars: {
+              horizontal: true,
+              vertical: true
+            },
             sounds: false,
             oneBasedIndex: false,
             move: {
-              scrollbars: {
-                horizontal: true,
-                vertical: true
-              },
+              scrollbars: true,
               drag: true,
               wheel: true
             },
@@ -210,6 +212,7 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
                 console.log('DEBUG: Block moved - ID:', event.blockId);
                 console.log('DEBUG: Old parent:', event.oldParentId, 'New parent:', event.newParentId);
                 console.log('DEBUG: Old coordinates:', event.oldCoordinate, 'New coordinates:', event.newCoordinate);
+                console.log('DEBUG: Move reason:', event.reason);
                 
                 if (event.newParentId === null && event.oldParentId !== null) {
                   console.log('DEBUG: Block disconnected from parent');
@@ -217,17 +220,17 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
                   console.log('DEBUG: Block connected to parent');
                 }
                 
-                // Check if block was dragged from toolbox - use string constants instead
-                if (event.reason === 'new') {
+                // Check if block was dragged from toolbox
+                if (event.reason === Blockly.Events.MOVE_REASON_NEW || event.reason === 'new') {
                   console.log('DEBUG: ✅ NEW BLOCK DRAGGED FROM TOOLBOX!');
-                } else if (event.reason === 'drag') {
+                } else if (event.reason === Blockly.Events.MOVE_REASON_DRAG || event.reason === 'drag') {
                   console.log('DEBUG: Block dragged within workspace');
                 }
               }
 
-              // Add drag start/end events - use string constants
-              if (event.type === 'drag') {
-                console.log('DEBUG: 🖱️ DRAG EVENT - Block ID:', event.blockId);
+              // Track UI events
+              if (event.type === Blockly.Events.UI) {
+                console.log('DEBUG: UI event:', event.element, event.oldValue, event.newValue);
               }
               
               // Generate code for meaningful changes using debounced function
@@ -249,11 +252,17 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
           workspace.addChangeListener(changeListener);
           console.log('DEBUG: Change listener added');
 
-          // Add toolbox item click debugging
+          // Add toolbox debugging
           const toolbox = workspace.getToolbox();
           if (toolbox) {
             console.log('DEBUG: ✅ Toolbox found and accessible');
             console.log('DEBUG: Toolbox flyout exists:', !!toolbox.getFlyout());
+            
+            // Test toolbox functionality
+            const flyout = toolbox.getFlyout();
+            if (flyout) {
+              console.log('DEBUG: Flyout is ready for blocks');
+            }
           } else {
             console.log('DEBUG: ❌ No toolbox found!');
           }
@@ -264,16 +273,6 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
           onCodeChange(initialCode);
 
           console.log('DEBUG: Workspace initialization completed successfully');
-          console.log('DEBUG: 📋 TOOLBOX CATEGORIES:');
-          
-          // Log available categories in toolbox - use try/catch for compatibility
-          if (toolbox) {
-            try {
-              console.log('DEBUG: Toolbox contents available');
-            } catch (error) {
-              console.log('DEBUG: Could not access toolbox details:', error);
-            }
-          }
 
         } catch (error) {
           console.error("DEBUG: Error initializing Blockly workspace:", error);
