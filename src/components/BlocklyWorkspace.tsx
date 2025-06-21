@@ -1,4 +1,5 @@
 
+
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -220,10 +221,10 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
                   console.log('DEBUG: Block connected to parent');
                 }
                 
-                // Check if block was dragged from toolbox
-                if (event.reason === Blockly.Events.MOVE_REASON_NEW || event.reason === 'new') {
+                // Check if block was dragged from toolbox - use string constants
+                if (event.reason === 'new') {
                   console.log('DEBUG: ✅ NEW BLOCK DRAGGED FROM TOOLBOX!');
-                } else if (event.reason === Blockly.Events.MOVE_REASON_DRAG || event.reason === 'drag') {
+                } else if (event.reason === 'drag') {
                   console.log('DEBUG: Block dragged within workspace');
                 }
               }
@@ -405,3 +406,4 @@ const getCustomTheme = () => {
     }
   });
 };
+
