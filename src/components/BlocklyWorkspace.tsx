@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -218,21 +217,17 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
                   console.log('DEBUG: Block connected to parent');
                 }
                 
-                // Check if block was dragged from toolbox
-                if (event.reason === Blockly.Events.MOVE_REASON_NEW) {
+                // Check if block was dragged from toolbox - use string constants instead
+                if (event.reason === 'new') {
                   console.log('DEBUG: ✅ NEW BLOCK DRAGGED FROM TOOLBOX!');
-                } else if (event.reason === Blockly.Events.MOVE_REASON_DRAG) {
+                } else if (event.reason === 'drag') {
                   console.log('DEBUG: Block dragged within workspace');
                 }
               }
 
-              // Add drag start/end events
-              if (event.type === Blockly.Events.DRAG_START) {
-                console.log('DEBUG: 🖱️ DRAG STARTED - Block ID:', event.blockId);
-              }
-
-              if (event.type === Blockly.Events.DRAG_STOP) {
-                console.log('DEBUG: 🖱️ DRAG STOPPED - Block ID:', event.blockId);
+              // Add drag start/end events - use string constants
+              if (event.type === 'drag') {
+                console.log('DEBUG: 🖱️ DRAG EVENT - Block ID:', event.blockId);
               }
               
               // Generate code for meaningful changes using debounced function
@@ -271,12 +266,13 @@ export const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspace
           console.log('DEBUG: Workspace initialization completed successfully');
           console.log('DEBUG: 📋 TOOLBOX CATEGORIES:');
           
-          // Log available categories in toolbox
+          // Log available categories in toolbox - use try/catch for compatibility
           if (toolbox) {
-            const categories = toolbox.getToolboxItems();
-            categories.forEach((category: any, index: number) => {
-              console.log(`DEBUG: Category ${index}: ${category.getName()}`);
-            });
+            try {
+              console.log('DEBUG: Toolbox contents available');
+            } catch (error) {
+              console.log('DEBUG: Could not access toolbox details:', error);
+            }
           }
 
         } catch (error) {
