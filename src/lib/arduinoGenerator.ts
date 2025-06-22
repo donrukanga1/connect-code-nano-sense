@@ -88,7 +88,7 @@ void onPDMdata() {
 
 export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => {
   try {
-    const result = arduinoGenerator.workspaceToCode(workspace);
+    const result: string | [string, number] = arduinoGenerator.workspaceToCode(workspace);
     console.log("workspaceToCode result:", result, "type:", typeof result);
     
     // Handle both string and tuple returns from workspaceToCode
@@ -96,7 +96,7 @@ export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => 
       return result[0] || "// No blocks to generate code";
     }
     // Ensure we return a string type
-    return String(result) || "// No blocks to generate code";
+    return result || "// No blocks to generate code";
   } catch (error) {
     console.error("Error generating code:", error);
     return "// Error generating code";
