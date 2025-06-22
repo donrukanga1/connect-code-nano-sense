@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -106,7 +105,7 @@ export const ComponentSelector = () => {
 
   const handleAddComponent = (componentTemplate: ComponentTemplate) => {
     const newComponent: Component = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       type: componentTemplate.type,
       name: `${componentTemplate.name} ${selectedComponents.length + 1}`,
       description: componentTemplate.description,

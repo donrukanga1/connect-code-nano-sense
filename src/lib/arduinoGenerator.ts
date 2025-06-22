@@ -55,7 +55,7 @@ export const setupArduinoGenerator = () => {
       default:
         code = "0";
     }
-    return [code, arduinoGenerator.ORDER_ATOMIC];
+    return [code, 0]; // Using numeric precedence instead of ORDER_ATOMIC
   };
 
   // Microphone Block
@@ -73,7 +73,7 @@ void onPDMdata() {
   samplesRead = bytesAvailable / 2;
 }\n`;
     definitions["mic_call_setup"] = `  initMicrophone();\n`;
-    return ["samplesRead > 0 ? sampleBuffer[0] : 0", arduinoGenerator.ORDER_ATOMIC];
+    return ["samplesRead > 0 ? sampleBuffer[0] : 0", 0]; // Using numeric precedence
   };
 
   arduinoGenerator.scrub_ = function (block: Blockly.Block, code: string, opt_thisOnly?: boolean) {
