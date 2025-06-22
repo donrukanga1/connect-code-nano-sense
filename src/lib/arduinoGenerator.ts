@@ -1,3 +1,4 @@
+
 import * as Blockly from "blockly";
 
 export const arduinoGenerator = new Blockly.Generator("Arduino");
@@ -91,11 +92,15 @@ export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => 
     console.log("workspaceToCode result:", result, "type:", typeof result);
     
     // Handle both string and tuple returns from workspaceToCode
+    let codeString: string;
     if (Array.isArray(result)) {
-      return result[0] || "// No blocks to generate code";
+      codeString = result[0] || "// No blocks to generate code";
+    } else {
+      codeString = result || "// No blocks to generate code";
     }
+    
     // Ensure we return a string type
-    return result || "// No blocks to generate code";
+    return codeString;
   } catch (error) {
     console.error("Error generating code:", error);
     return "// Error generating code";
