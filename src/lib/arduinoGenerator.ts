@@ -92,9 +92,8 @@ export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => 
     // Handle both string and tuple returns from workspaceToCode
     if (Array.isArray(result)) {
       return result[0] || "// No blocks to generate code";
-    } else {
-      return result || "// No blocks to generate code";
     }
+    return result || "// No blocks to generate code";
   } catch (error) {
     console.error("Error generating code:", error);
     return "// Error generating code";
