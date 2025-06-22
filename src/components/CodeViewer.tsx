@@ -1,3 +1,4 @@
+
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,10 @@ import { Copy, Download, FileCode } from "lucide-react";
 import { toast } from "sonner";
 import Prism from "prismjs";
 import "prismjs/themes/prism-dark.css";
+
+// Import C language first as Arduino is based on C
+import "prismjs/components/prism-c";
+// Then import Arduino component
 import "prismjs/components/prism-arduino";
 
 interface CodeViewerProps {
@@ -100,7 +105,17 @@ ${warnings}${rawCode}`;
   const formattedCode = useMemo(() => formatArduinoCode(code), [code]);
 
   const highlightedCode = useMemo(() => {
-    return Prism.highlight(formattedCode, Prism.languages.arduino, "arduino");
+    try {
+      // Use 'cpp' as fallback if Arduino language isn't available
+      const language = Prism.languages.arduino || Prism.languages.cpp || Prism.languages.c;
+      if (language) {
+        return Prism.highlight(formattedCode, language, "arduino");
+      }
+      return formattedCode; // Return plain text if no language available
+    } catch (error) {
+      console.error("Prism highlighting error:", error);
+      return formattedCode; // Return plain text on error
+    }
   }, [formattedCode]);
 
   const lineCount = useMemo(() => formattedCode.split("\n").length, [formattedCode]);
