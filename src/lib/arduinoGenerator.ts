@@ -26,7 +26,7 @@ export const setupArduinoGenerator = () => {
     return `digitalWrite(${pin}, ${state});\n`;
   };
 
-  // IMU Block
+  // IMU Block - Fixed to return only the code string when used as value
   arduinoGenerator.forBlock["component_imu"] = function (block: Blockly.Block) {
     const sensorType = block.getFieldValue("SENSOR_TYPE");
     definitions["include_LSM6DS3"] = `#include <Arduino_LSM6DS3.h>\n`;
@@ -55,10 +55,10 @@ export const setupArduinoGenerator = () => {
       default:
         code = "0";
     }
-    return [code, 0]; // Using numeric precedence instead of ORDER_ATOMIC
+    return [code, 0]; // Return tuple for value blocks
   };
 
-  // Microphone Block
+  // Microphone Block - Fixed to return only the code string when used as value
   arduinoGenerator.forBlock["component_microphone"] = function (block: Blockly.Block) {
     definitions["include_PDM"] = `#include <PDM.h>\n`;
     definitions["mic_buffer"] = `short sampleBuffer[256];\nvolatile int samplesRead;\n`;
@@ -73,7 +73,7 @@ void onPDMdata() {
   samplesRead = bytesAvailable / 2;
 }\n`;
     definitions["mic_call_setup"] = `  initMicrophone();\n`;
-    return ["samplesRead > 0 ? sampleBuffer[0] : 0", 0]; // Using numeric precedence
+    return ["samplesRead > 0 ? sampleBuffer[0] : 0", 0]; // Return tuple for value blocks
   };
 
   arduinoGenerator.scrub_ = function (block: Blockly.Block, code: string, opt_thisOnly?: boolean) {

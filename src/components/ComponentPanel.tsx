@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,6 @@ import {
 import { toast } from "sonner";
 import { useComponentManager } from "@/hooks/useComponentManager";
 import { Component } from "@/lib/types";
-import { v4 as uuidv4 } from "uuid";
 
 interface ComponentSection {
   id: string;
