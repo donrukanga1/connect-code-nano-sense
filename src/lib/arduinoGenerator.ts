@@ -1,4 +1,3 @@
-
 import * as Blockly from "blockly";
 
 export const arduinoGenerator = new Blockly.Generator("Arduino");
@@ -88,7 +87,7 @@ void onPDMdata() {
 
 export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => {
   try {
-    const result = arduinoGenerator.workspaceToCode(workspace);
+    const result: string | [string, number] = arduinoGenerator.workspaceToCode(workspace);
     // Handle both string and tuple returns from workspaceToCode
     if (Array.isArray(result)) {
       return result[0] || "// No blocks to generate code";
