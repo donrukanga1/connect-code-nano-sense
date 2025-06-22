@@ -1,4 +1,3 @@
-
 import * as Blockly from "blockly";
 
 export const arduinoGenerator = new Blockly.Generator("Arduino");
