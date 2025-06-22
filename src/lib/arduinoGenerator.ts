@@ -88,7 +88,7 @@ void onPDMdata() {
 
 export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => {
   try {
-    const result: string | [string, number] = arduinoGenerator.workspaceToCode(workspace);
+    const result = arduinoGenerator.workspaceToCode(workspace);
     // Handle both string and tuple returns from workspaceToCode
     let code: string;
     if (Array.isArray(result)) {
