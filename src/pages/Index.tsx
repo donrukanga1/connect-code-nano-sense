@@ -88,6 +88,19 @@ const Index = () => {
     localStorage.setItem('arduino-blockly-tutorial-seen', 'true');
   };
 
+  const handleSaveWorkspace = () => {
+    if (workspaceRef.current) {
+      return workspaceRef.current.saveAsXml();
+    }
+    return "";
+  };
+
+  const handleLoadWorkspace = (xmlString: string) => {
+    if (workspaceRef.current) {
+      workspaceRef.current.loadFromXml(xmlString);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Header */}
@@ -129,6 +142,8 @@ const Index = () => {
             onClear={handleClearWorkspace}
             onToggleCode={() => setShowCodeViewer(!showCodeViewer)}
             onShowTutorial={handleShowTutorial}
+            onSaveWorkspace={handleSaveWorkspace}
+            onLoadWorkspace={handleLoadWorkspace}
             showCodeViewer={showCodeViewer}
             isConnected={isConnected}
           />

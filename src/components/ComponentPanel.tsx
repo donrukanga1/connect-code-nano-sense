@@ -1,6 +1,8 @@
+
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Cpu,
   Lightbulb,
@@ -15,23 +17,24 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useComponentManager } from "@/hooks/useComponentManager";
+import { Component } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
-
-interface Component {
-  id: string;
-  type: string;
-  name: string;
-  description: string;
-  icon?: React.ReactNode;
-  blockType: string;
-}
 
 interface ComponentSection {
   id: string;
   title: string;
   icon: React.ReactNode;
   color: string;
-  components: Component[];
+  components: ComponentTemplate[];
+}
+
+interface ComponentTemplate {
+  id: string;
+  type: 'sensor' | 'actuator' | 'input';
+  name: string;
+  description: string;
+  icon?: React.ReactNode;
+  blockType: string;
 }
 
 export const ComponentSelector = () => {
@@ -53,24 +56,10 @@ export const ComponentSelector = () => {
       components: [
         {
           id: "setup",
-          type: "setup",
+          type: "actuator",
           name: "Setup",
           description: "Initialization code",
           blockType: "controls_setup",
-        },
-        {
-          id: "delay",
-          type: "delay",
-          name: "Delay",
-          description: "Wait for time",
-          blockType: "delay",
-        },
-        {
-          id: "serial",
-          type: "serial",
-          name: "Serial",
-          description: "Communication",
-          blockType: "serial_print",
         },
       ],
     },
@@ -82,39 +71,15 @@ export const ComponentSelector = () => {
       components: [
         {
           id: "imu",
-          type: "imu",
+          type: "sensor",
           name: "IMU",
           description: "Motion sensor (LSM6DS3)",
           icon: <Activity className="w-3 h-3" />,
           blockType: "component_imu",
         },
         {
-          id: "temperature",
-          type: "temperature",
-          name: "Temperature",
-          description: "HTS221 sensor",
-          icon: <Thermometer className="w-3 h-3" />,
-          blockType: "component_temperature",
-        },
-        {
-          id: "humidity",
-          type: "humidity",
-          name: "Humidity",
-          description: "HTS221 sensor",
-          icon: <Gauge className="w-3 h-3" />,
-          blockType: "component_humidity",
-        },
-        {
-          id: "pressure",
-          type: "pressure",
-          name: "Pressure",
-          description: "LPS22HB sensor",
-          icon: <Gauge className="w-3 h-3" />,
-          blockType: "component_pressure",
-        },
-        {
           id: "microphone",
-          type: "microphone",
+          type: "sensor",
           name: "Microphone",
           description: "MP34DT05 sensor",
           icon: <Mic className="w-3 h-3" />,
@@ -130,44 +95,26 @@ export const ComponentSelector = () => {
       components: [
         {
           id: "led",
-          type: "led",
+          type: "actuator",
           name: "LED",
           description: "Control LED output",
           blockType: "component_led",
-        },
-        {
-          id: "digital_read",
-          type: "digital_read",
-          name: "Digital Read",
-          description: "Read digital inputs",
-          blockType: "digital_read",
-        },
-        {
-          id: "analog_read",
-          type: "analog_read",
-          name: "Analog Read",
-          description: "Read analog sensors",
-          blockType: "analog_read",
-        },
-        {
-          id: "pwm_write",
-          type: "pwm_write",
-          name: "PWM Write",
-          description: "Control servos/LEDs",
-          blockType: "pwm_write",
         },
       ],
     },
   ];
 
-  const handleAddComponent = (component: Component) => {
-    const newComponent = {
+  const handleAddComponent = (componentTemplate: ComponentTemplate) => {
+    const newComponent: Component = {
       id: uuidv4(),
-      type: component.type,
-      name: `${component.name} ${selectedComponents.length + 1}`,
+      type: componentTemplate.type,
+      name: `${componentTemplate.name} ${selectedComponents.length + 1}`,
+      description: componentTemplate.description,
+      icon: componentTemplate.icon,
+      blocks: [componentTemplate.blockType],
     };
     addComponent(newComponent);
-    toast.success(`${component.name} added to workspace`);
+    toast.success(`${componentTemplate.name} added to workspace`);
   };
 
   const handleRemoveComponent = (componentId: string) => {

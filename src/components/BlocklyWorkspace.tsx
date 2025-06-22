@@ -11,13 +11,8 @@ import { WorkspaceSvg, Theme } from "blockly";
 import { defineArduinoBlocks, areBlocksRegistered } from "@/lib/arduinoBlocks";
 import { setupArduinoGenerator, generateArduinoCode } from "@/lib/arduinoGenerator";
 import { generateToolboxConfig } from "@/lib/toolboxGenerator";
+import { Component } from "@/lib/types";
 import { toast } from "sonner";
-
-interface Component {
-  id: string;
-  type: string;
-  name: string;
-}
 
 interface BlocklyWorkspaceProps {
   onCodeChange: (code: string) => void;
