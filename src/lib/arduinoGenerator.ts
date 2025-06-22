@@ -1,110 +1,40 @@
-import { javascriptGenerator } from 'blockly/javascript';
+import * as Blockly from "blockly";
+
+export const arduinoGenerator = new Blockly.Generator("Arduino");
 
 export const setupArduinoGenerator = () => {
-  // Arduino Setup Block
-  javascriptGenerator.forBlock['arduino_setup'] = function(block: any) {
-    const statements = javascriptGenerator.statementToCode(block, 'SETUP_CODE');
-    return `void setup() {\n${statements}}\n\n`;
+  arduinoGenerator["controls_setup"] = function (block: Blockly.Block) {
+    const setupCode = arduinoGenerator.statementToCode(block, "SETUP");
+    const loopCode = arduinoGenerator.statementToCode(block, "LOOP");
+    const definitions = Object.values(arduinoGenerator.definitions_).join("");
+    return `${definitions}void setup() {\n${setupCode}}\n\nvoid loop() {\n${loopCode}}\n`;
   };
 
-  // Arduino Loop Block
-  javascriptGenerator.forBlock['arduino_loop'] = function(block: any) {
-    const statements = javascriptGenerator.statementToCode(block, 'LOOP_CODE');
-    return `void loop() {\n${statements}}\n`;
+  arduinoGenerator["component_led"] = function (block: Blockly.Block) {
+    const pin = block.getFieldValue("PIN");
+    const state = block.getFieldValue("STATE");
+    arduinoGenerator.definitions_[`pinMode_${pin}`] = `pinMode(${pin}, OUTPUT);\n`;
+    return `digitalWrite(${pin}, ${state});\n`;
   };
 
-  // Pin Mode Block
-  javascriptGenerator.forBlock['arduino_pin_mode'] = function(block: any) {
-    const pin = block.getFieldValue('PIN');
-    const mode = block.getFieldValue('MODE');
-    return `  pinMode(${pin}, ${mode});\n`;
+  arduinoGenerator.scrub_ = function (block: Blockly.Block, code: string, opt_thisOnly?: boolean) {
+    const nextBlock = block.nextConnection && block.nextConnection.targetBlock();
+    let nextCode = "";
+    if (nextBlock && !opt_thisOnly) {
+      nextCode = this.blockToCode(nextBlock);
+    }
+    return code + nextCode;
   };
 
-  // Digital Write Block
-  javascriptGenerator.forBlock['arduino_digital_write'] = function(block: any) {
-    const pin = block.getFieldValue('PIN');
-    const state = block.getFieldValue('STATE');
-    return `  digitalWrite(${pin}, ${state});\n`;
-  };
+  arduinoGenerator.definitions_ = {};
+};
 
-  // Digital Read Block
-  javascriptGenerator.forBlock['arduino_digital_read'] = function(block: any) {
-    const pin = block.getFieldValue('PIN');
-    return [`digitalRead(${pin})`, 0];
-  };
-
-  // Analog Read Block
-  javascriptGenerator.forBlock['arduino_analog_read'] = function(block: any) {
-    const pin = block.getFieldValue('PIN');
-    return [`analogRead(${pin})`, 0];
-  };
-
-  // Analog Write Block
-  javascriptGenerator.forBlock['arduino_analog_write'] = function(block: any) {
-    const pin = block.getFieldValue('PIN');
-    const value = block.getFieldValue('VALUE');
-    return `  analogWrite(${pin}, ${value});\n`;
-  };
-
-  // Delay Block
-  javascriptGenerator.forBlock['arduino_delay'] = function(block: any) {
-    const time = block.getFieldValue('TIME');
-    return `  delay(${time});\n`;
-  };
-
-  // Serial Begin Block
-  javascriptGenerator.forBlock['arduino_serial_begin'] = function(block: any) {
-    const baud = block.getFieldValue('BAUD');
-    return `  Serial.begin(${baud});\n`;
-  };
-
-  // Serial Print Block
-  javascriptGenerator.forBlock['arduino_serial_print'] = function(block: any) {
-    const text = javascriptGenerator.valueToCode(block, 'TEXT', 0) || '""';
-    return `  Serial.println(${text});\n`;
-  };
-
-  // Built-in LED Block
-  javascriptGenerator.forBlock['arduino_led_builtin'] = function(block: any) {
-    const state = block.getFieldValue('STATE');
-    return `  digitalWrite(LED_BUILTIN, ${state});\n`;
-  };
-
-  // Text Block
-  javascriptGenerator.forBlock['text'] = function(block: any) {
-    const text = block.getFieldValue('TEXT');
-    return [`"${text}"`, 0];
-  };
-
-  // Number Block
-  javascriptGenerator.forBlock['math_number'] = function(block: any) {
-    const number = block.getFieldValue('NUM');
-    return [number, 0];
-  };
-
-  // Sensor generators
-  javascriptGenerator.forBlock['arduino_temperature_read'] = function(block: any) {
-    return [`HTS.readTemperature()`, 0];
-  };
-
-  javascriptGenerator.forBlock['arduino_humidity_read'] = function(block: any) {
-    return [`HTS.readHumidity()`, 0];
-  };
-
-  javascriptGenerator.forBlock['arduino_imu_read'] = function(block: any) {
-    const axis = block.getFieldValue('AXIS');
-    return [`IMU.readFloatAccel${axis.toUpperCase()}()`, 0];
-  };
-
-  javascriptGenerator.forBlock['arduino_microphone_read'] = function(block: any) {
-    return [`PDM.read()`, 0];
-  };
-
-  javascriptGenerator.forBlock['arduino_sensor_begin'] = function(block: any) {
-    return `  HTS.begin();\n`;
-  };
-
-  javascriptGenerator.forBlock['arduino_imu_begin'] = function(block: any) {
-    return `  IMU.begin();\n`;
-  };
+export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => {
+  try {
+    const code = arduinoGenerator.workspaceToCode(workspace);
+    return code || "// No blocks to generate code";
+  } catch (error) {
+    console.error("Error generating code:", error);
+    return "// Error generating code";
+  }
 };
