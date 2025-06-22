@@ -32,13 +32,12 @@ export const useComponentManager = () => {
       const alreadyExists = prev.some(c => c.id === component.id);
       if (alreadyExists) {
         console.log('DEBUG: Component already selected, not adding again');
-        return prev; // Component already selected
+        return prev;
       }
       
       const newComponents = [...prev, component];
       console.log('DEBUG useComponentManager: Updated selectedComponents:', newComponents);
       
-      // Verify the stored component has blocks
       const storedComponent = newComponents.find(c => c.id === component.id);
       if (storedComponent && !storedComponent.blocks) {
         console.error('❌ ERROR: Stored component is missing blocks!', storedComponent);
@@ -63,12 +62,11 @@ export const useComponentManager = () => {
     
     const blocks = new Set<string>();
     
-    // Always include basic Arduino blocks
-    blocks.add('arduino_setup');
-    blocks.add('arduino_loop');
-    blocks.add('arduino_delay');
-    blocks.add('arduino_serial_begin');
-    blocks.add('arduino_serial_print');
+    // Always include basic Arduino blocks using correct block type names
+    blocks.add('controls_setup');
+    blocks.add('component_led');
+    blocks.add('component_imu');
+    blocks.add('component_microphone');
     
     // Add blocks for selected components
     selectedComponents.forEach((component, index) => {
