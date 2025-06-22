@@ -1,14 +1,5 @@
-
 import { useState, useCallback } from 'react';
-
-interface Component {
-  id: string;
-  name: string;
-  type: 'sensor' | 'actuator' | 'input';
-  icon: React.ReactNode;
-  description: string;
-  blocks: string[];
-}
+import { Component } from '@/lib/types';
 
 export const useComponentManager = () => {
   const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);

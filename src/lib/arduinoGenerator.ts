@@ -26,7 +26,7 @@ export const setupArduinoGenerator = () => {
     return `digitalWrite(${pin}, ${state});\n`;
   };
 
-  // IMU Block - Fixed to return only the code string when used as value
+  // IMU Block - Returns tuple for value blocks
   arduinoGenerator.forBlock["component_imu"] = function (block: Blockly.Block) {
     const sensorType = block.getFieldValue("SENSOR_TYPE");
     definitions["include_LSM6DS3"] = `#include <Arduino_LSM6DS3.h>\n`;
@@ -58,7 +58,7 @@ export const setupArduinoGenerator = () => {
     return [code, 0]; // Return tuple for value blocks
   };
 
-  // Microphone Block - Fixed to return only the code string when used as value
+  // Microphone Block - Returns tuple for value blocks
   arduinoGenerator.forBlock["component_microphone"] = function (block: Blockly.Block) {
     definitions["include_PDM"] = `#include <PDM.h>\n`;
     definitions["mic_buffer"] = `short sampleBuffer[256];\nvolatile int samplesRead;\n`;
@@ -89,6 +89,10 @@ void onPDMdata() {
 export const generateArduinoCode = (workspace: Blockly.WorkspaceSvg): string => {
   try {
     const code = arduinoGenerator.workspaceToCode(workspace);
+    // Ensure we always return a string, even if blocks return tuples
+    if (Array.isArray(code)) {
+      return code[0] || "// No blocks to generate code";
+    }
     return code || "// No blocks to generate code";
   } catch (error) {
     console.error("Error generating code:", error);
